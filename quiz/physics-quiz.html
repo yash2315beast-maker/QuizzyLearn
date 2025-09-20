@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Physics Chapters</title>
+<style>
+  body {
+    font-family: 'Poppins', sans-serif;
+    margin: 0;
+    padding: 40px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 25px;
+    min-height: 100vh;
+    overflow: hidden;
+    background: #0d1b2a; /* dark space background */
+    color: #fff;
+    position: relative;
+  }
+
+  canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 0;
+  }
+
+  h1 {
+    position: relative;
+    color: #fff;
+    text-shadow: 0 0 10px #ff6a00, 0 0 20px #ee0979;
+    z-index: 2;
+    margin-bottom: 40px;
+  }
+
+  button.chapter-btn {
+    position: relative;
+    padding: 18px 50px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    border: none;
+    border-radius: 14px; 
+    cursor: pointer;
+    background: linear-gradient(135deg, #ff6a00, #ee0979);
+    color: white;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.5);
+    transition: all 0.3s ease;
+    min-width: 250px;
+    text-align: center;
+    z-index: 2;
+  }
+
+  button.chapter-btn:hover {
+    background: linear-gradient(135deg, #ee0979, #ff6a00);
+    transform: translateY(-4px) scale(1.02);
+    box-shadow: 0 12px 25px rgba(0,0,0,0.6);
+  }
+
+  #backBtn {
+    position: fixed;
+    top: 15px;
+    left: 15px;
+    padding: 12px 22px;
+    font-size: 1rem;
+    background-color: #feca57;
+    color: #222;
+    font-weight: 700;
+    border-radius: 12px;
+    box-shadow: 0 6px 15px rgba(0,0,0,0.4);
+    z-index: 2;
+    transition: all 0.3s ease;
+    cursor: pointer;
+  }
+
+  #backBtn:hover {
+    background-color: #e6b642;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 18px rgba(0,0,0,0.45);
+  }
+</style>
+</head>
+<body>
+
+<!-- Back Button -->
+<button id="backBtn" onclick="goBack()">Back</button>
+
+<!-- Page Title -->
+<h1>Physics Chapters</h1>
+
+<!-- Chapter Buttons -->
+<button class="chapter-btn" onclick="goToChapter(1)">Physics Chapter 1</button>
+<button class="chapter-btn" onclick="goToChapter(2)">Physics Chapter 2</button>
+<button class="chapter-btn" onclick="goToChapter(3)">Physics Chapter 3</button>
+
+<!-- Canvas for animated lines -->
+<canvas id="lineCanvas"></canvas>
+
+<script>
+  function goBack() {
+    window.history.back();
+  }
+
+  function goToChapter(num) {
+    window.location.href = `physicschapter${num}.html`;
+  }
+
+  // Animated lines
+  const canvas = document.getElementById('lineCanvas');
+  const ctx = canvas.getContext('2d');
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+
+  const lines = [];
+  for(let i = 0; i < 30; i++) {
+    lines.push({
+      x: Math.random()*canvas.width,
+      y: Math.random()*canvas.height,
+      length: 50 + Math.random()*100,
+      speedX: 0.5 - Math.random(),
+      speedY: 0.5 - Math.random(),
+      angle: Math.random()*Math.PI*2
+    });
+  }
+
+  function draw() {
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+    ctx.lineWidth = 1.5;
+
+    lines.forEach(line => {
+      ctx.beginPath();
+      ctx.moveTo(line.x, line.y);
+      ctx.lineTo(line.x + Math.cos(line.angle)*line.length, line.y + Math.sin(line.angle)*line.length);
+      ctx.stroke();
+
+      line.x += line.speedX;
+      line.y += line.speedY;
+      line.angle += 0.01;
+
+      // Wrap around screen
+      if(line.x > canvas.width) line.x = 0;
+      if(line.x < 0) line.x = canvas.width;
+      if(line.y > canvas.height) line.y = 0;
+      if(line.y < 0) line.y = canvas.height;
+    });
+
+    requestAnimationFrame(draw);
+  }
+
+  draw();
+
+  window.addEventListener('resize', () => {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+  });
+</script>
+
+</body>
+</html>

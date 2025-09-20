@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Grades</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Poppins', sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      background: linear-gradient(-45deg, #6a11cb, #2575fc, #1dd1a1, #feca57);
+      background-size: 400% 400%;
+      animation: gradientBG 15s ease infinite;
+      color: white;
+      text-align: center;
+      position: relative;
+    }
+    @keyframes gradientBG {
+      0% {background-position:0% 50%;}
+      50% {background-position:100% 50%;}
+      100% {background-position:0% 50%;}
+    }
+    h1 {
+      font-size: 2.5rem;
+      margin-bottom: 2rem;
+      text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+    }
+    .grade-btn {
+      background: rgba(255,255,255,0.9);
+      color: #2575fc;
+      padding: 15px 50px;
+      border: none;
+      border-radius: 50px;
+      font-size: 1.2rem;
+      font-weight: 600;
+      cursor: pointer;
+      margin: 10px;
+      transition: all 0.3s ease;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.25);
+    }
+    .grade-btn:hover {
+      background: #2575fc;
+      color: white;
+      transform: scale(1.05);
+    }
+    .back-btn {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      background: rgba(255,255,255,0.85);
+      color: #2575fc;
+      padding: 12px 18px;
+      font-size: 1.5rem;
+      border-radius: 50%;
+      border: none;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    }
+  </style>
+</head>
+<body>
+  <!-- Back to language selection -->
+  <button class="back-btn" onclick="window.location.href='language.html'">&#8592;</button>
+
+  <h1 id="title">Select Your Grade</h1>
+  <div>
+    <button id="grade6_7" class="grade-btn" onclick="selectGrade('6-7')"></button>
+    <button id="grade8_10" class="grade-btn" onclick="selectGrade('8-10')"></button>
+    <button id="grade11_12" class="grade-btn" onclick="selectGrade('11-12')"></button>
+  </div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    let lang = localStorage.getItem("selectedLanguage");
+
+    const translations = {
+      english: {
+        title: "Select Your Grade",
+        grade6_7: "Grade 6–7",
+        grade8_10: "Grade 8–10",
+        grade11_12: "Grade 11–12"
+      },
+      hindi: {
+        title: "अपनी कक्षा चुनें",
+        grade6_7: "कक्षा 6–7",
+        grade8_10: "कक्षा 8–10",
+        grade11_12: "कक्षा 11–12"
+      },
+      odia: {
+        title: "ଶ୍ରେଣୀ ଚୟନ କରନ୍ତୁ",
+        grade6_7: "ଶ୍ରେଣୀ 6–7",
+        grade8_10: "ଶ୍ରେଣୀ 8–10",
+        grade11_12: "ଶ୍ରେଣୀ 11–12"
+      },
+      telugu: {
+        title: "మీ తరగతిని ఎంచుకోండి",
+        grade6_7: "తరగతి 6–7",
+        grade8_10: "తరగతి 8–10",
+        grade11_12: "తరగతి 11–12"
+      },
+      marathi: {
+        title: "आपला वर्ग निवडा",
+        grade6_7: "इयत्ता ६–७",
+        grade8_10: "इयत्ता ८–१०",
+        grade11_12: "इयत्ता ११–१२"
+      }
+    };
+
+    let content = translations[lang] || translations["english"];
+
+    document.getElementById("title").innerText = content.title;
+    document.getElementById("grade6_7").innerText = content.grade6_7;
+    document.getElementById("grade8_10").innerText = content.grade8_10;
+    document.getElementById("grade11_12").innerText = content.grade11_12;
+  });
+
+  function selectGrade(grade) {
+    localStorage.setItem("selectedGrade", grade);
+    window.location.href = "subjects.html"; // redirect to subjects page
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Physics Game 2: Gravity Drop Challenge</title>
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      margin: 0;
+      padding: 20px;
+      background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+      color: white;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      user-select: none;
+      text-align: center;
+    }
+    h1 {
+      margin-bottom: 20px;
+    }
+    #arena {
+      position: relative;
+      width: 200px;
+      height: 400px;
+      background: linear-gradient(to top, #34495e 0%, #7f8c8d 100%);
+      border-radius: 12px;
+      border: 3px solid #1abc9c;
+      overflow: hidden;
+      box-shadow: 0 0 20px #16a085;
+      margin-bottom: 20px;
+    }
+    #ball {
+      position: absolute;
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      background: radial-gradient(circle at center, #f39c12, #d35400);
+      left: 50%;
+      transform: translateX(-50%);
+      top: 0;
+      box-shadow: 0 0 10px #d35400;
+    }
+    button {
+      padding: 12px 26px;
+      border-radius: 8px;
+      border: none;
+      background-color: #1abc9c;
+      color: #fff;
+      font-weight: 700;
+      font-size: 18px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+      margin: 0 10px;
+      user-select: none;
+    }
+    button:hover {
+      background-color: #16a085;
+    }
+    #info {
+      margin-top: 15px;
+      font-weight: 600;
+      font-size: 18px;
+      min-height: 70px;
+      white-space: pre-line;
+    }
+    #score {
+      font-size: 24px;
+      font-weight: 800;
+      margin-top: 15px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Gravity Drop Challenge</h1>
+  <div id="arena">
+    <div id="ball"></div>
+  </div>
+  <div>
+    <button id="startBtn">Start Drop</button>
+    <button id="guessBtn" disabled>My Guess: Ball Hits Ground NOW</button>
+    <button id="resetBtn" disabled>Reset</button>
+  </div>
+  <div id="info"></div>
+  <div id="score"></div>
+
+  <script>
+    const ball = document.getElementById('ball');
+    const startBtn = document.getElementById('startBtn');
+    const guessBtn = document.getElementById('guessBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    const info = document.getElementById('info');
+    const scoreDisplay = document.getElementById('score');
+    const arenaHeightPx = 400;
+    const ballHeightPx = 50;
+    const dropHeightM = 10; // meters
+
+    let g;     // gravity m/s^2, randomized
+    let totalTime;  // seconds, depends on g
+    let animationFrame = null;
+    let startTime = null;
+    let dropStarted = false;
+    let ballPos = 0; // pixels from top
+    let guessTime = null;
+    let dropEnded = false;
+
+    function randomizeGravity() {
+      g = 5 + Math.random() * 10;  // gravity between 5 and 15 m/s^2
+      totalTime = Math.sqrt(2 * dropHeightM / g);
+    }
+
+    function updatePosition(timeSinceStart) {
+      const s = 0.5 * g * timeSinceStart * timeSinceStart;
+      ballPos = (s / dropHeightM) * (arenaHeightPx - ballHeightPx);
+      if (ballPos > arenaHeightPx - ballHeightPx) ballPos = arenaHeightPx - ballHeightPx;
+      ball.style.top = ballPos + "px";
+
+      const velocity = g * timeSinceStart;
+      const distanceLeft = dropHeightM - s;
+
+      info.textContent = `Gravity: ${g.toFixed(2)} m/s²\nTime: ${timeSinceStart.toFixed(2)} s\nVelocity: ${velocity.toFixed(2)} m/s\nDistance left: ${distanceLeft.toFixed(2)} m`;
+    }
+
+    function animate(timestamp) {
+      if (!startTime) startTime = timestamp;
+      const elapsed = (timestamp - startTime) / 1000;
+      updatePosition(elapsed);
+
+      if (elapsed >= totalTime) {
+        info.textContent += "\nBall has hit the ground!";
+        dropEnded = true;
+        guessBtn.disabled = true;
+        resetBtn.disabled = false;
+        startBtn.disabled = true;
+        animationFrame = null;
+        showScore();
+        return;
+      }
+      animationFrame = requestAnimationFrame(animate);
+    }
+
+    function showScore() {
+      if (guessTime === null) {
+        scoreDisplay.textContent = "You did not guess!";
+      } else {
+        const diff = Math.abs(guessTime - totalTime);
+        let score = Math.max(0, 100 - diff * 100);
+        score = Math.round(score);
+        scoreDisplay.textContent = `Your guess was off by ${diff.toFixed(2)} seconds. Score: ${score} / 100`;
+      }
+    }
+
+    startBtn.addEventListener('click', () => {
+      if (dropStarted) return;
+      dropStarted = true;
+      randomizeGravity();
+      startBtn.disabled = true;
+      guessBtn.disabled = false;
+      resetBtn.disabled = true;
+      scoreDisplay.textContent = "";
+      startTime = null;
+      ballPos = 0;
+      ball.style.top = "0px";
+      dropEnded = false;
+      animationFrame = requestAnimationFrame(animate);
+      guessTime = null;
+      info.textContent = "Ball is dropping...";
+    });
+
+    guessBtn.addEventListener('click', () => {
+      if (!dropStarted || dropEnded) return;
+      guessTime = (performance.now() - startTime) / 1000;
+      scoreDisplay.textContent = "Guess recorded! Wait for ball to hit ground...";
+      guessBtn.disabled = true;
+    });
+
+    resetBtn.addEventListener('click', () => {
+      if (animationFrame) {
+        cancelAnimationFrame(animationFrame);
+      }
+      dropStarted = false;
+      startBtn.disabled = false;
+      guessBtn.disabled = true;
+      resetBtn.disabled = true;
+      ballPos = 0;
+      ball.style.top = "0px";
+      guessTime = null;
+      dropEnded = false;
+      info.textContent = "Press Start to drop the ball.";
+      scoreDisplay.textContent = "";
+    });
+
+    info.textContent = "Press Start to drop the ball.";
+  </script>
+</body>
+</html>

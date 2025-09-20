@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Select Subject - QuizzyLearn</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Poppins', sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      background: linear-gradient(-45deg, #6a11cb, #2575fc, #1dd1a1, #feca57);
+      background-size: 400% 400%;
+      animation: gradientBG 15s ease infinite;
+      color: white;
+      text-align: center;
+      padding-bottom: 80px;
+      position: relative;
+    }
+    @keyframes gradientBG {
+      0% {background-position:0% 50%;}
+      50% {background-position:100% 50%;}
+      100% {background-position:0% 50%;}
+    }
+    h1 {
+      font-size: 2.5rem;
+      margin-bottom: 2rem;
+      text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+    }
+    .btn {
+      background: rgba(255,255,255,0.9);
+      color: #2575fc;
+      padding: 15px 40px;
+      border: none;
+      border-radius: 50px;
+      font-size: 1.2rem;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.25);
+      transition: all 0.3s ease;
+      margin: 12px;
+      display: block;
+    }
+    .btn:hover {
+      background: #2575fc;
+      color: white;
+      transform: scale(1.05);
+      box-shadow: 0 8px 25px rgba(0,0,0,0.35);
+    }
+    .back-btn {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      padding: 10px 20px;
+      font-size: 1rem;
+      background: rgba(255,255,255,0.7);
+      color: #000;
+      border: none;
+      border-radius: 30px;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    }
+    footer {
+      position: absolute;
+      bottom: 0;
+      width: 100%;
+      background: rgba(0,0,0,0.25);
+      backdrop-filter: blur(5px);
+      padding: 15px 0;
+      font-size: 0.9rem;
+      color: #ffffffdd;
+      text-align: center;
+      box-shadow: 0 -2px 10px rgba(0,0,0,0.2);
+    }
+    footer span { font-weight: 600; }
+  </style>
+</head>
+<body>
+  <!-- Back button -->
+  <button class="back-btn" onclick="window.location.href='grades.html'">⬅ Back</button>
+
+  <h1 id="title">Select Subject</h1>
+  <div>
+    <button id="cs" class="btn"></button>
+    <button id="physics" class="btn"></button>
+    <button id="bio" class="btn"></button>
+    <button id="math" class="btn"></button>
+    <button id="english" class="btn"></button>
+  </div>
+
+  <footer>
+    <span>QuizzyLearn</span> | Learn. Play. Grow. | © 2025 All rights reserved.
+  </footer>
+
+  <script>
+    // ✅ Translations for all languages
+    const translations = {
+      english: {
+        title: "Select Subject",
+        cs: "Computer Science",
+        physics: "Physics",
+        bio: "Biology",
+        math: "Mathematics",
+        english: "English"
+      },
+      hindi: {
+        title: "विषय चुनें",
+        cs: "कंप्यूटर विज्ञान",
+        physics: "भौतिक विज्ञान",
+        bio: "जीवविज्ञान",
+        math: "गणित",
+        english: "अंग्रेज़ी"
+      },
+      odia: {
+        title: "ବିଷୟ ବାଛନ୍ତୁ",
+        cs: "କମ୍ପ୍ୟୁଟର ବିଜ୍ଞାନ",
+        physics: "ଭୌତିକ ବିଜ୍ଞାନ",
+        bio: "ଜୀବ ବିଜ୍ଞାନ",
+        math: "ଗଣିତ",
+        english: "ଇଂରାଜୀ"
+      },
+      telugu: {
+        title: "విషయం ఎంచుకోండి",
+        cs: "కంప్యూటర్ సైన్స్",
+        physics: "భౌతిక శాస్త్రం",
+        bio: "జీవశాస్త్రం",
+        math: "గణితం",
+        english: "ఇంగ్లీష్"
+      },
+      marathi: {
+        title: "विषय निवडा",
+        cs: "संगणक शास्त्र",
+        physics: "भौतिकशास्त्र",
+        bio: "जीवशास्त्र",
+        math: "गणित",
+        english: "इंग्रजी"
+      }
+    };
+
+    // ✅ Load language from localStorage
+    const lang = localStorage.getItem("selectedLanguage") || "english";
+    const grade = localStorage.getItem("selectedGrade") || "";
+
+    const content = translations[lang];
+
+    // ✅ Apply translations
+    document.getElementById("title").innerText = `${content.title} ${grade ? "(Grade: " + grade + ")" : ""}`;
+    document.getElementById("cs").innerText = content.cs;
+    document.getElementById("physics").innerText = content.physics;
+    document.getElementById("bio").innerText = content.bio;
+    document.getElementById("math").innerText = content.math;
+    document.getElementById("english").innerText = content.english;
+
+    // ✅ Subject click handler
+    function goToSubject(subjectKey) {
+    const subjectMap = {
+      cs: "quiz/cs-quiz.html",
+      physics: "quiz/physics-quiz.html",
+      bio: "quiz/bio-quiz.html",
+      math: "quiz/math-quiz.html",
+      english: "quiz/english-quiz.html"
+    };
+
+    const selectedPage = subjectMap[subjectKey];
+    if (selectedPage) {
+      localStorage.setItem("selectedSubject", content[subjectKey]);
+      window.location.href = selectedPage;
+    } else {
+      alert("Quiz page not found for this subject.");
+    }
+  }
+
+    // ✅ Attach clicks
+    document.getElementById("cs").onclick = () => goToSubject("cs");
+    document.getElementById("physics").onclick = () => goToSubject("physics");
+    document.getElementById("bio").onclick = () => goToSubject("bio");
+    document.getElementById("math").onclick = () => goToSubject("math");
+    document.getElementById("english").onclick = () => goToSubject("english");
+  </script>
+</body>
+</html> 

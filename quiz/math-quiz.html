@@ -1,0 +1,266 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Math Quiz</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(-45deg, #6a11cb, #2575fc, #1dd1a1, #feca57);
+      background-size: 400% 400%;
+      animation: gradientBG 15s ease infinite;
+      color: white;
+      text-align: center;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+    @keyframes gradientBG {
+      0% {background-position:0% 50%;}
+      50% {background-position:100% 50%;}
+      100% {background-position:0% 50%;}
+    }
+    h1 { margin-bottom: 20px; font-size: 2rem; }
+    .quiz-container {
+      background: rgba(0,0,0,0.3);
+      padding: 20px;
+      border-radius: 15px;
+      box-shadow: 0 6px 15px rgba(0,0,0,0.4);
+      width: 90%;
+      max-width: 500px;
+    }
+    .option {
+      display: block;
+      margin: 10px 0;
+      padding: 12px 20px;
+      border: none;
+      border-radius: 10px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      background: white;
+      color: #2575fc;
+      transition: 0.3s;
+      width: 100%;
+    }
+    .option:hover { background: #2575fc; color: white; }
+    .result { margin-top: 20px; font-size: 1.2rem; font-weight: bold; }
+    .correct { color: #1dd1a1; }
+    .wrong { color: #ff6b6b; }
+    .next-btn {
+      margin-top: 20px;
+      padding: 12px 25px;
+      font-size: 1rem;
+      font-weight: 600;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      background: #feca57;
+      color: #333;
+      display: none;
+      transition: 0.3s;
+    }
+    .next-btn:hover { background: #ff9f43; color: white; }
+    .badge {
+      margin-top: 20px;
+      font-size: 2rem;
+    }
+    .gold { color: gold; }
+    .silver { color: silver; }
+    .bronze { color: #cd7f32; }
+    .restart-btn {
+      margin-top: 20px;
+      padding: 12px 25px;
+      font-size: 1rem;
+      font-weight: 600;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      background: #1dd1a1;
+      color: white;
+      display: none;
+      transition: 0.3s;
+    }
+    .restart-btn:hover { background: #10ac84; }
+  </style>
+</head>
+<body>
+
+  <h1>Math Quiz</h1>
+  <div class="quiz-container">
+    <p id="question"><b>Q1:</b> Loading...</p>
+    <div id="options"></div>
+    <p id="result" class="result"></p>
+    <button id="next-btn" class="next-btn" onclick="nextQuestion()">Next Question ➡️</button>
+    <button id="restart-btn" class="restart-btn" onclick="restartQuiz()">🔄 Restart Quiz</button>
+    <div id="badge" class="badge"></div>
+  </div>
+
+  <script>
+    const quiz = [
+      { q: "What is 7 × 8 ?", options: [48, 56, 64, 72], correct: 56 },
+      { q: "What is 15 ÷ 3 ?", options: [5, 6, 4, 3], correct: 5 },
+      { q: "Solve: 12 + 9 = ?", options: [21, 20, 19, 18], correct: 21 },
+      { q: "What is 45 − 19 ?", options: [24, 25, 26, 27], correct: 26 },
+      { q: "What is half of 50 ?", options: [20, 25, 15, 30], correct: 25 },
+      { q: "Simplify: 3 × (4 + 2)", options: [18, 20, 15, 12], correct: 18 },
+      { q: "Find the value: 100 ÷ 5", options: [15, 25, 20, 30], correct: 20 },
+      { q: "Which is greater: 3/4 or 2/3 ?", options: ["3/4", "2/3", "Equal", "None"], correct: "3/4" },
+      { q: "What is the square of 9 ?", options: [18, 81, 27, 72], correct: 81 },
+      { q: "If a box has 12 apples and you eat 5, how many are left?", options: [5, 6, 7, 8], correct: 7 }
+    ];
+
+    let currentQ = 0;
+    let score = 0;
+
+    function loadQuestion() {
+      document.getElementById("result").innerText = "";
+      document.getElementById("next-btn").style.display = "none";
+
+      const q = quiz[currentQ];
+      document.getElementById("question").innerHTML = `<b>Q${currentQ + 1}:</b> ${q.q}`;
+
+      const optionsDiv = document.getElementById("options");
+      optionsDiv.innerHTML = "";
+      q.options.forEach(opt => {
+        const btn = document.createElement("button");
+        btn.className = "option";
+        btn.innerText = opt;
+        btn.onclick = () => checkAnswer(opt, q.correct);
+        optionsDiv.appendChild(btn);
+      });
+    }
+
+    function checkAnswer(selected, correct) {
+      let result = document.getElementById("result");
+      if (selected == correct) {
+        result.innerHTML = "✅ Correct!";
+        result.className = "result correct";
+        score++;
+      } else {
+        result.innerHTML = "❌ Wrong! Correct answer is " + correct;
+        result.className = "result wrong";
+      }
+      document.getElementById("next-btn").style.display = "inline-block";
+    }
+
+    function nextQuestion() {
+      currentQ++;
+      if (currentQ < quiz.length) {
+        loadQuestion();
+      } else {
+        endQuiz();
+      }
+    }
+
+    function endQuiz() {
+      document.getElementById("question").innerText = "🎉 Quiz Completed!";
+      document.getElementById("options").innerHTML = "";
+      document.getElementById("result").innerText = `Your Score: ${score} / ${quiz.length}`;
+      document.getElementById("next-btn").style.display = "none";
+      document.getElementById("restart-btn").style.display = "inline-block";
+
+      const badgeDiv = document.getElementById("badge");
+      if (score >= 8) {
+        badgeDiv.innerHTML = "🏆 <span class='gold'>Gold Badge</span> - Excellent!";
+      } else if (score >= 5) {
+        badgeDiv.innerHTML = "🥈 <span class='silver'>Silver Badge</span> - Good Job!";
+      } else {
+        badgeDiv.innerHTML = "🥉 <span class='bronze'>Bronze Badge</span> - Keep Practicing!";
+      }
+    }
+
+    function restartQuiz() {
+      currentQ = 0;
+      score = 0;
+      document.getElementById("badge").innerHTML = "";
+      document.getElementById("restart-btn").style.display = "none";
+      loadQuestion();
+    }
+
+    // Load first question
+    loadQuestion();
+  </script>
+  <!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Math Quiz</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(-45deg, #6a11cb, #2575fc, #1dd1a1, #feca57);
+      background-size: 400% 400%;
+      animation: gradientBG 15s ease infinite;
+      color: white;
+      text-align: center;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 20px;
+    }
+    @keyframes gradientBG {
+      0% {background-position:0% 50%;}
+      50% {background-position:100% 50%;}
+      100% {background-position:0% 50%;}
+    }
+    .btn {
+      background: rgba(255,255,255,0.9);
+      color: #2575fc;
+      padding: 12px 25px;
+      border: none;
+      border-radius: 50px;
+      font-size: 1rem;
+      font-weight: 600;
+      margin: 10px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.25);
+    }
+    .btn:hover {
+      background: #2575fc;
+      color: white;
+      transform: scale(1.05);
+    }
+    .back-btn {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      padding: 12px 18px;
+      font-size: 1.2rem;
+      border-radius: 50%;
+      border: none;
+      background: rgba(255,255,255,0.9);
+      color: #2575fc;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      transition: 0.3s;
+    }
+    .back-btn:hover { background: #2575fc; color: white; }
+  </style>
+</head>
+<body>
+
+  <!-- 🔙 Back button -->
+  <button class="back-btn" onclick="window.location.href='../subjects.html'">⬅ Back</button>
+
+  <h1>Math Quiz (Grade 6-7)</h1>
+  <div id="quiz"></div>
+  <p id="feedback"></p>
+  <button class="btn" id="next-btn" onclick="nextQuestion()" style="display:none;">Next Question</button>
+  <p id="result"></p>
+
+  <script src="quiz.js"></script>
+</body>
+</html>  
+
+</body>
+</html>

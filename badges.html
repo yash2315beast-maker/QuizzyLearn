@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Badges</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(-45deg, #6a11cb, #2575fc, #1dd1a1, #feca57);
+      background-size: 400% 400%;
+      animation: gradientBG 15s ease infinite;
+      color: white;
+      text-align: center;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+    }
+    @keyframes gradientBG {
+      0% {background-position:0% 50%;}
+      50% {background-position:100% 50%;}
+      100% {background-position:0% 50%;}
+    }
+    h1 { margin: 20px 0; font-size: 2.5rem; }
+    .badge-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 20px;
+      width: 100%;
+      max-width: 800px;
+    }
+    .badge {
+      background: rgba(0,0,0,0.3);
+      border-radius: 15px;
+      padding: 20px;
+      box-shadow: 0 6px 15px rgba(0,0,0,0.4);
+    }
+    .badge span {
+      font-size: 2rem;
+      display: block;
+      margin-bottom: 10px;
+    }
+    .gold { color: gold; }
+    .silver { color: silver; }
+    .bronze { color: #cd7f32; }
+    .empty { opacity: 0.3; }
+    .back-btn {
+      margin-top: 30px;
+      padding: 12px 25px;
+      font-size: 1rem;
+      font-weight: 600;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      background: #feca57;
+      color: #333;
+      transition: 0.3s;
+    }
+    .back-btn:hover { background: #ff9f43; color: white; }
+  </style>
+</head>
+<body>
+
+  <h1>🎖️ My Badge Collection</h1>
+  <div class="badge-container" id="badge-container">
+    <!-- Badges will load here -->
+  </div>
+
+  <button class="back-btn" onclick="window.location.href='subject.html'">⬅ Back to Subjects</button>
+
+  <script>
+    // Example subjects
+    const subjects = ["Mathematics", "Physics", "Biology", "Computer Science", "English"];
+
+    function loadBadges() {
+      const container = document.getElementById("badge-container");
+      container.innerHTML = "";
+
+      subjects.forEach(sub => {
+        let badge = localStorage.getItem(sub) || "none";
+        let badgeHTML = "";
+
+        if (badge === "gold") {
+          badgeHTML = `<span class="gold">🏆</span><b>${sub}</b><br>Gold Badge`;
+        } else if (badge === "silver") {
+          badgeHTML = `<span class="silver">🥈</span><b>${sub}</b><br>Silver Badge`;
+        } else if (badge === "bronze") {
+          badgeHTML = `<span class="bronze">🥉</span><b>${sub}</b><br>Bronze Badge`;
+        } else {
+          badgeHTML = `<span class="empty">❔</span><b>${sub}</b><br>No Badge Yet`;
+        }
+
+        const div = document.createElement("div");
+        div.className = "badge";
+        div.innerHTML = badgeHTML;
+        container.appendChild(div);
+      });
+    }
+
+    loadBadges();
+  </script>
+</body>
+</html>

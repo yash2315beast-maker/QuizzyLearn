@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Games - QuizzyLearn</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Poppins', sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      min-height: 100vh;
+      background: linear-gradient(135deg, #ff9ff3, #48dbfb, #1dd1a1, #feca57);
+      background-size: 400% 400%;
+      animation: gradientBG 12s ease infinite;
+      color: white;
+      text-align: center;
+      padding: 20px;
+      position: relative;
+    }
+    @keyframes gradientBG {
+      0% {background-position:0% 50%;}
+      50% {background-position:100% 50%;}
+      100% {background-position:0% 50%;}
+    }
+    h1 {
+      margin-top: 70px;
+      font-size: 2.2rem;
+      text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+    }
+    h2 { font-size: 1.3rem; margin-bottom: 20px; }
+    .game-btn {
+      background: white;
+      color: #333;
+      padding: 15px 40px;
+      margin: 10px;
+      border: none;
+      border-radius: 40px;
+      font-size: 1.1rem;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 6px 15px rgba(0,0,0,0.25);
+      transition: all 0.3s ease;
+    }
+    .game-btn:hover {
+      background: #333;
+      color: white;
+      transform: scale(1.05);
+    }
+    .back-btn {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      padding: 10px 20px;
+      font-size: 1rem;
+      background: rgba(255,255,255,0.8);
+      color: #000;
+      border: none;
+      border-radius: 30px;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    }
+    footer {
+      position: absolute;
+      bottom: 0;
+      width: 100%;
+      background: rgba(0,0,0,0.3);
+      padding: 12px 0;
+      font-size: 0.9rem;
+      color: #ffffffdd;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <button class="back-btn" onclick="window.history.back()">⬅ Back</button>
+
+  <h1 id="games-title">Games</h1>
+  <h2 id="subject-grade"></h2>
+
+  <div id="games-list"></div>
+
+  <footer>
+    QuizzyLearn | Learn. Play. Grow. | © 2025 All rights reserved.
+  </footer>
+
+
+  <!-- ✅ Place your script here -->
+  <script>
+    // Get grade & subject from URL
+    const params = new URLSearchParams(window.location.search);
+    const grade = params.get("grade");
+    const subject = params.get("subject");
+
+    document.getElementById("games-title").innerText = subject + " Games";
+    document.getElementById("subject-grade").innerText = "Grade: " + grade;
+
+    // Define games by subject
+    const games = {
+      "Computer Science": ["Coding Quiz", "Logic Puzzle"],
+      "Physics": ["Laws of Motion Quiz", "Energy Match"],
+      "Biology": ["Human Body Quiz", "Plant Match Game"],
+      "Mathematics": ["Math Quiz", "Sudoku"],
+      "English": ["Grammar Quiz", "Word Match"]
+    };
+
+    const list = document.getElementById("games-list");
+
+    if (games[subject]) {
+      games[subject].forEach(game => {
+        const btn = document.createElement("button");
+        btn.className = "game-btn";
+        btn.innerText = game;
+
+        btn.onclick = () => {
+          // ✅ Math Quiz only for 6-7
+          if (subject === "Mathematics" && game === "Math Quiz" && grade === "6-7") {
+            window.location.href = `math-quiz.html?grade=${grade}&subject=${subject}`;
+          } else {
+            alert(`⚠️ ${game} is not available for Grade ${grade} yet!`);
+          }
+        };
+
+        list.appendChild(btn);
+      });
+    } else {
+      list.innerHTML = "<p>No games found for this subject.</p>";
+    }
+  </script>
+</body>
+
+</body>
+</html>

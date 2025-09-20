@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Fun English Word Guessing Game</title>
+<style>
+  body {
+    font-family: 'Poppins', sans-serif;
+    background: linear-gradient(135deg, #6a11cb, #2575fc, #1dd1a1, #feca57);
+    background-size: 400% 400%;
+    animation: gradientBG 15s ease infinite;
+    color: white;
+    text-align: center;
+    margin: 0;
+    padding: 30px;
+    position: relative;
+  }
+  @keyframes gradientBG {
+    0% {background-position: 0% 50%;}
+    50% {background-position: 100% 50%;}
+    100% {background-position: 0% 50%;}
+  }
+  button {
+    user-select: none;
+    transition: transform 0.1s ease;
+  }
+  button:active {
+    transform: scale(0.9);
+  }
+  #backBtn {
+    position: fixed;
+    top: 15px;
+    left: 15px;
+    background-color: #feca57;
+    color: #222;
+    font-weight: 700;
+    border: none;
+    border-radius: 6px;
+    padding: 10px 18px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background 0.3s;
+    z-index: 1000;
+  }
+  #backBtn:hover {
+    background-color: #e6b642;
+  }
+  #wordDisplay {
+    font-size: 2em;
+    letter-spacing: 10px;
+    margin-bottom: 20px;
+  }
+  #hint {
+    font-size: 1.2em;
+    margin-bottom: 20px;
+  }
+  #letters {
+    display: grid;
+    grid-template-columns: repeat(13, 40px);
+    grid-gap: 10px;
+    justify-content: center;
+    max-width: 600px;
+    margin: 0 auto 20px auto;
+  }
+  .letter-btn {
+    font-size: 1.2em;
+    padding: 10px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    background-color: #2575fc;
+    color: white;
+    font-weight: 700;
+    transition: background 0.2s;
+  }
+  .letter-btn:hover {
+    background-color: #1dd1a1;
+  }
+  .letter-btn.disabled {
+    background-color: #888;
+    cursor: default;
+  }
+  #tries {
+    margin-top: 20px;
+    font-size: 1.2em;
+  }
+  #message {
+    margin-top: 30px;
+    font-size: 1.5em;
+    font-weight: 700;
+  }
+  #restartBtn, #retryBtn {
+    margin-top: 20px;
+    border: none;
+    padding: 10px 25px;
+    font-weight: 700;
+    font-size: 1.2em;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.3s;
+  }
+  #restartBtn {
+    background-color: #feca57;
+    color: #222;
+    display: none;
+  }
+  #restartBtn:hover {
+    background-color: #e6b642;
+  }
+  #retryBtn {
+    background-color: #1dd1a1;
+    color: #222;
+    margin-left: 10px;
+  }
+  #retryBtn:hover {
+    background-color: #17a589;
+  }
+</style>
+</head>
+<body>
+
+<button id="backBtn" onclick="window.location.href='../subjects.html'">Back</button>
+  
+
+
+<h2>English Word Guessing Game - Grade 6/7</h2>
+<div id="hint"></div>
+<div id="wordDisplay"></div>
+<div id="letters"></div>
+<div id="tries"></div>
+<div id="message"></div>
+<button id="retryBtn" onclick="restartGame()">Retry</button>
+<button id="restartBtn" onclick="restartGame()">Play Again</button>
+
+<script>
+  const words = [
+    {word: "elephant", hint: "A large gray animal with a trunk"},
+    {word: "mountain", hint: "A very high natural place on Earth"},
+    {word: "computer", hint: "An electronic device for processing data"},
+    {word: "library", hint: "Building with books for reading"},
+    {word: "jungle", hint: "Dense tropical forest"},
+    {word: "planet", hint: "Earth is one of these"},
+    {word: "painter", hint: "An artist who uses colors"},
+  ];
+
+  let selectedWord = "";
+  let selectedHint = "";
+  let guessedLetters = [];
+  let triesLeft = 6;
+
+  const wordDisplay = document.getElementById('wordDisplay');
+  const hintDisplay = document.getElementById('hint');
+  const lettersDiv = document.getElementById('letters');
+  const triesDisplay = document.getElementById('tries');
+  const messageDisplay = document.getElementById('message');
+  const restartBtn = document.getElementById('restartBtn');
+  const retryBtn = document.getElementById('retryBtn');
+
+  function goBack() {
+    window.location.href = "subjects.html"; // Change to your back page URL
+
+
+  }
+
+  function pickWord() {
+    const idx = Math.floor(Math.random() * words.length);
+    selectedWord = words[idx].word.toUpperCase();
+    selectedHint = words[idx].hint;
+    guessedLetters = [];
+    triesLeft = 6;
+    messageDisplay.textContent = "";
+    restartBtn.style.display = "none";
+    retryBtn.style.display = "inline-block";
+    hintDisplay.textContent = "Hint: " + selectedHint;
+    triesDisplay.textContent = `Tries left: ${triesLeft}`;
+    generateButtons();
+    updateWordDisplay();
+  }
+
+  function generateButtons() {
+    lettersDiv.innerHTML = "";
+    for(let i=65; i<=90; i++) {
+      const letterBtn = document.createElement('button');
+      letterBtn.className = 'letter-btn';
+      letterBtn.textContent = String.fromCharCode(i);
+      letterBtn.onclick = () => guessLetter(letterBtn.textContent, letterBtn);
+      lettersDiv.appendChild(letterBtn);
+    }
+  }
+
+  function updateWordDisplay() {
+    let display = "";
+    for(let ch of selectedWord) {
+      if(ch === " ") {
+        display += "  ";
+      } else if(guessedLetters.includes(ch)) {
+        display += ch + " ";
+      } else {
+        display += "_ ";
+      }
+    }
+    wordDisplay.textContent = display.trim();
+  }
+
+  function guessLetter(letter, button) {
+    if (guessedLetters.includes(letter) || triesLeft === 0) return;
+
+    guessedLetters.push(letter);
+    button.classList.add('disabled');
+    button.disabled = true;
+
+    if(!selectedWord.includes(letter)) {
+      triesLeft--;
+      triesDisplay.textContent = `Tries left: ${triesLeft}`;
+    } else {
+      updateWordDisplay();
+    }
+
+    checkGameOver();
+  }
+
+  function checkGameOver() {
+    if (!wordDisplay.textContent.includes("_")) {
+      messageDisplay.textContent = "🎉 Congrats! You guessed the word!";
+      endGame();
+    } else if(triesLeft === 0) {
+      messageDisplay.textContent = `Game over! The word was "${selectedWord}".`;
+      wordDisplay.textContent = selectedWord.split("").join(" ");
+      endGame();
+    }
+  }
+
+  function endGame() {
+    const buttons = document.querySelectorAll('.letter-btn');
+    buttons.forEach(btn => btn.disabled = true);
+    retryBtn.style.display = "none";
+    restartBtn.style.display = "inline-block";
+  }
+
+  function restartGame() {
+    pickWord();
+  }
+
+  pickWord();
+</script>
+
+</body>
+</html>
