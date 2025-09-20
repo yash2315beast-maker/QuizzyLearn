@@ -7,20 +7,15 @@
     body {
       font-family: 'Poppins', sans-serif;
       margin: 0;
-      padding: 20px;
+      padding: 0;
       background: linear-gradient(135deg, #1e3c72, #2a5298);
       color: white;
       display: flex;
-      flex-direction: column;
       align-items: center;
+      justify-content: center;
       user-select: none;
-      overflow-x: hidden;
-    }
-
-    h1 {
-      margin-bottom: 10px;
-      text-align: center;
-      text-shadow: 0 0 10px #0ff, 0 0 20px #0ff;
+      overflow: hidden;
+      height: 100vh;
     }
 
     #backBtn {
@@ -53,6 +48,15 @@
       box-shadow: 0 0 30px #0d47a1;
       position: relative;
       z-index: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    h1 {
+      margin-bottom: 10px;
+      text-align: center;
+      text-shadow: 0 0 10px #0ff, 0 0 20px #0ff;
     }
 
     #box-container {
@@ -86,14 +90,11 @@
       text-shadow: 0 0 5px #000;
       z-index: 2;
     }
-/* Update block appearances */
-.wood { background: linear-gradient(45deg, #a0522d, #d2b48c); }
-.stone { background: linear-gradient(45deg, #7f8c8d, #95a5a6); }
-/* Steel block is now black metallic */
-.steel { background: linear-gradient(45deg, #000000, #434343); color: #fff; }
 
+    .wood { background: linear-gradient(45deg, #a0522d, #d2b48c); }
+    .stone { background: linear-gradient(45deg, #7f8c8d, #95a5a6); }
+    .steel { background: linear-gradient(45deg, #000000, #434343); color: #fff; }
 
-    /* Direction arrows */
     .direction-arrow {
       position: absolute;
       top: 40px;
@@ -105,10 +106,12 @@
       opacity: 0;
       transition: opacity 0.3s;
     }
+
     .arrow-right {
       border-left: 25px solid #2ecc71;
       left: 180px;
     }
+
     .arrow-left {
       border-right: 25px solid #e74c3c;
       left: 470px;
@@ -119,6 +122,7 @@
       font-size: 18px;
       line-height: 1.5;
       min-height: 60px;
+      text-align: center;
     }
 
     button {
@@ -180,6 +184,7 @@
         <option value="3">3 kg (Stone)</option>
         <option value="5">5 kg (Steel)</option>
       </select>
+
       <label for="forceInput">Force (N):</label>
       <input type="range" id="forceInput" min="-20" max="20" value="0" step="1" />
       <span id="forceValue">0 N</span>

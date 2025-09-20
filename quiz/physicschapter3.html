@@ -1,300 +1,330 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<title>Projectile Motion Challenge with Back Button</title>
-<style>
-  body {
-    font-family: 'Poppins', sans-serif;
-    margin: 0;
-    padding: 20px;
-    background: linear-gradient(135deg, #0a3d62, #3c6382);
-    color: white;
-    text-align: center;
-    user-select: none;
-  }
-  #backBtn {
-    position: fixed;
-    top: 15px;
-    left: 15px;
-    background-color: #feca57;
-    color: #222;
-    font-weight: 700;
-    border: none;
-    border-radius: 6px;
-    padding: 10px 18px;
-    cursor: pointer;
-    font-size: 1rem;
-    transition: background 0.3s;
-    z-index: 1000;
-  }
-  #backBtn:hover {
-    background-color: #e6b642;
-  }
-  h1 {
-    margin-bottom: 20px;
-    margin-top: 0;
-  }
-  #game-area {
-    position: relative;
-    width: 700px;
-    height: 400px;
-    background: #130f40;
-    border-radius: 12px;
-    margin: 40px auto 20px auto; /* add top margin so back button doesn't overlap */
-    box-shadow: 0 0 15px #6a89cc;
-    overflow: hidden;
-  }
-  #projectile {
-    position: absolute;
-    width: 20px;
-    height: 20px;
-    background: radial-gradient(circle at center, #555, #111);
-    border-radius: 50%;
-    bottom: 20px;
-    left: 40px;
-    box-shadow: 0 0 10px #222;
-    transform: translate(-50%, 0);
-  }
-  #target {
-    position: absolute;
-    bottom: 20px;
-    width: 30px;
-    height: 30px;
-    background: radial-gradient(circle at center, #e74c3c, #c0392b);
-    border-radius: 50%;
-    box-shadow: 0 0 15px #e74c3c;
-  }
-  .aim-dot {
-    position: absolute;
-    background-color: #f1c40f;
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    filter: drop-shadow(0 0 4px #f39c12);
-    pointer-events: none;
-  }
-  .controls {
-    max-width: 700px;
-    margin: 0 auto;
-    display: flex;
-    justify-content: center;
-    gap: 30px;
-    user-select: none;
-  }
-  label {
-    font-weight: 600;
-    font-size: 16px;
-  }
-  input[type="range"] {
-    width: 150px;
-    cursor: pointer;
-    border-radius: 10px;
-  }
-  button {
-    padding: 10px 22px;
-    margin: 15px 10px 0 10px;
-    border-radius: 8px;
-    background: #78e08f;
-    border: none;
-    color: #130f40;
-    font-size: 1.1rem;
-    font-weight: 700;
-    cursor: pointer;
-    transition: background 0.25s;
-    user-select: none;
-    display: block;
-  }
-  button:hover {
-    background: #38ada9;
-  }
-  #info {
-    text-align: center;
-    font-size: 18px;
-    margin-top: 15px;
-    min-height: 80px;
-    font-weight: 600;
-    white-space: pre-line;
-  }
-</style>
+  <meta charset="UTF-8" />
+  <title>Projectile Motion Challenge with Back Button</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(135deg, #0a3d62, #3c6382);
+      color: white;
+      user-select: none;
+    }
+
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+    }
+
+    #backBtn {
+      position: fixed;
+      top: 15px;
+      left: 15px;
+      background-color: #feca57;
+      color: #222;
+      font-weight: 700;
+      border: none;
+      border-radius: 6px;
+      padding: 10px 18px;
+      cursor: pointer;
+      font-size: 1rem;
+      transition: background 0.3s;
+      z-index: 1000;
+    }
+
+    #backBtn:hover {
+      background-color: #e6b642;
+    }
+
+    h1 {
+      margin-top: 0;
+      margin-bottom: 20px;
+      text-shadow: 0 0 10px #222;
+    }
+
+    #game-area {
+      position: relative;
+      width: 700px;
+      height: 400px;
+      background: #130f40;
+      border-radius: 12px;
+      box-shadow: 0 0 15px #6a89cc;
+      overflow: hidden;
+      margin-bottom: 20px;
+    }
+
+    #projectile {
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      background: radial-gradient(circle at center, #555, #111);
+      border-radius: 50%;
+      bottom: 20px;
+      left: 40px;
+      box-shadow: 0 0 10px #222;
+      transform: translate(-50%, 0);
+    }
+
+    #target {
+      position: absolute;
+      bottom: 10px;       /* lowered target by 10px */
+      width: 20px;        /* smaller width */
+      height: 20px;       /* smaller height */
+      background: radial-gradient(circle at center, #e74c3c, #c0392b);
+      border-radius: 50%;
+      box-shadow: 0 0 15px #e74c3c;
+    }
+
+    .aim-dot {
+      position: absolute;
+      background-color: #f1c40f;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      filter: drop-shadow(0 0 4px #f39c12);
+      pointer-events: none;
+    }
+
+    .controls {
+      display: flex;
+      justify-content: center;
+      gap: 40px;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+
+    label {
+      font-weight: 600;
+      font-size: 16px;
+    }
+
+    input[type="range"] {
+      width: 150px;
+      cursor: pointer;
+      border-radius: 10px;
+    }
+
+    button {
+      padding: 10px 22px;
+      margin: 10px 10px 0 10px;
+      border-radius: 8px;
+      background: #78e08f;
+      border: none;
+      color: #130f40;
+      font-size: 1.1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.25s;
+      user-select: none;
+    }
+
+    button:hover {
+      background: #38ada9;
+    }
+
+    #info {
+      font-size: 18px;
+      font-weight: 600;
+      min-height: 60px;
+      white-space: pre-line;
+      margin-top: 10px;
+    }
+  </style>
 </head>
 <body>
 
-<button id="backBtn" onclick="goBack()">Back</button>
+  <button id="backBtn" onclick="goBack()">Back</button>
 
-<h1>Projectile Motion Challenge with Precise Hit Detection</h1>
-<div id="game-area">
-  <div id="projectile"></div>
-  <div id="target"></div>
-</div>
+  <h1>Projectile Motion Challenge</h1>
 
-<div class="controls">
-  <div>
-    <label for="angleRange">Angle (degrees): <span id="angleValue">45</span></label><br />
-    <input id="angleRange" type="range" min="10" max="80" value="45" />
+  <div id="game-area">
+    <div id="projectile"></div>
+    <div id="target"></div>
   </div>
-  <div>
-    <label for="speedRange">Speed (m/s): <span id="speedValue">25</span></label><br />
-    <input id="speedRange" type="range" min="10" max="40" value="25" />
+
+  <div class="controls">
+    <div>
+      <label for="angleRange">Angle (degrees): <span id="angleValue">45</span></label><br />
+      <input id="angleRange" type="range" min="10" max="80" value="45" />
+    </div>
+    <div>
+      <label for="speedRange">Speed (m/s): <span id="speedValue">25</span></label><br />
+      <input id="speedRange" type="range" min="10" max="40" value="25" />
+    </div>
   </div>
-</div>
 
-<button id="launchBtn">Launch</button>
-<button id="resetBtn">Restart</button>
-<div id="info"></div>
+  <div>
+    <button id="launchBtn">Launch</button>
+    <button id="resetBtn">Restart</button>
+  </div>
 
-<script>
-  function goBack() {
-    window.history.back(); // Goes back to previous page, change if you want a fixed URL
-  }
+  <div id="info"></div>
 
-  const projectile = document.getElementById('projectile');
-  const target = document.getElementById('target');
-  const gameArea = document.getElementById('game-area');
-  const angleRange = document.getElementById('angleRange');
-  const speedRange = document.getElementById('speedRange');
-  const angleValue = document.getElementById('angleValue');
-  const speedValue = document.getElementById('speedValue');
-  const launchBtn = document.getElementById('launchBtn');
-  const resetBtn = document.getElementById('resetBtn');
-  const info = document.getElementById('info');
-
-  const gravity = 9.81;
-  const gameWidth = gameArea.clientWidth;
-  const gameHeight = gameArea.clientHeight;
-  const pixelsPerMeter = gameWidth / 60;
-
-  let targetDistance, targetPx;
-  let animationFrame = null;
-  let launchTime = null;
-  let flying = false;
-  let aimDots = [];
-
-  function createAimDot(x, y) {
-    const dot = document.createElement('div');
-    dot.className = 'aim-dot';
-    dot.style.left = x + 'px';
-    dot.style.top = y + 'px';
-    gameArea.appendChild(dot);
-    aimDots.push(dot);
-  }
-
-  function clearAimDots() {
-    aimDots.forEach(dot => dot.remove());
-    aimDots = [];
-  }
-
-  function updateAimDots() {
-    clearAimDots();
-    const angle = parseFloat(angleRange.value) * Math.PI / 180;
-    const speed = parseFloat(speedRange.value);
-    const dotsCount = 3;
-    const maxT = 1; // dots closer together
-    for (let i = 1; i <= dotsCount; i++) {
-      const t = (i / dotsCount) * maxT;
-      let x = speed * Math.cos(angle) * t;
-      let y = speed * Math.sin(angle) * t - 0.5 * gravity * t * t;
-      let px = x * pixelsPerMeter;
-      let py = gameHeight - (y * pixelsPerMeter) - projectile.offsetHeight / 2 - 20;
-      if (py > gameHeight - projectile.offsetHeight / 2 - 20) continue;
-      if (px > gameWidth) break;
-      createAimDot(px, py);
+  <script>
+    function goBack() {
+      window.history.back();
     }
-  }
 
-  function setRandomTarget() {
-    targetDistance = 20 + Math.random() * 30;
-    targetPx = targetDistance * pixelsPerMeter;
-    target.style.left = (targetPx - target.offsetWidth / 2) + 'px';
-  }
+    const projectile = document.getElementById('projectile');
+    const target = document.getElementById('target');
+    const gameArea = document.getElementById('game-area');
+    const angleRange = document.getElementById('angleRange');
+    const speedRange = document.getElementById('speedRange');
+    const angleValue = document.getElementById('angleValue');
+    const speedValue = document.getElementById('speedValue');
+    const launchBtn = document.getElementById('launchBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    const info = document.getElementById('info');
 
-  function updateLabels() {
-    angleValue.textContent = angleRange.value;
-    speedValue.textContent = speedRange.value;
-    updateAimDots();
-  }
+    const gravity = 9.81;
+    const gameWidth = gameArea.clientWidth;
+    const gameHeight = gameArea.clientHeight;
+    const pixelsPerMeter = gameWidth / 60;
 
-  angleRange.addEventListener('input', () => {
-    if (flying) return;
-    updateLabels();
-    info.textContent = '';
-  });
+    let targetDistance, targetPx;
+    let animationFrame = null;
+    let launchTime = null;
+    let flying = false;
+    let aimDots = [];
 
-  speedRange.addEventListener('input', () => {
-    if (flying) return;
-    updateLabels();
-    info.textContent = '';
-  });
+    function createAimDot(x, y) {
+      const dot = document.createElement('div');
+      dot.className = 'aim-dot';
+      dot.style.left = x + 'px';
+      dot.style.top = y + 'px';
+      gameArea.appendChild(dot);
+      aimDots.push(dot);
+    }
 
-  function launch() {
-    if (flying) return;
-    flying = true;
-    launchTime = null;
-    clearAimDots();
-    info.textContent = 'Projectile launched!';
+    function clearAimDots() {
+      aimDots.forEach(dot => dot.remove());
+      aimDots = [];
+    }
 
-    const angle = parseFloat(angleRange.value) * Math.PI / 180;
-    const speed = parseFloat(speedRange.value);
-
-    function animate(t) {
-      if (!launchTime) launchTime = t;
-      const elapsed = (t - launchTime) / 1000;
-
-      let x = speed * Math.cos(angle) * elapsed;
-      let y = speed * Math.sin(angle) * elapsed - 0.5 * gravity * elapsed * elapsed;
-
-      let px = x * pixelsPerMeter;
-      let py = gameHeight - (y * pixelsPerMeter) - projectile.offsetHeight / 2 - 20;
-
-      if (py > gameHeight - projectile.offsetHeight / 2 - 20) {
-        flying = false;
-        cancelAnimationFrame(animationFrame);
-        checkHit(px);
-        return;
-      } else if (px > gameWidth) {
-        flying = false;
-        cancelAnimationFrame(animationFrame);
-        info.textContent = 'Projectile flew out of bounds!';
-        return;
+    function updateAimDots() {
+      clearAimDots();
+      const angle = parseFloat(angleRange.value) * Math.PI / 180;
+      const speed = parseFloat(speedRange.value);
+      const dotsCount = 3;
+      const maxT = 1;
+      for (let i = 1; i <= dotsCount; i++) {
+        const t = (i / dotsCount) * maxT;
+        let x = speed * Math.cos(angle) * t;
+        let y = speed * Math.sin(angle) * t - 0.5 * gravity * t * t;
+        let px = x * pixelsPerMeter;
+        let py = gameHeight - (y * pixelsPerMeter) - projectile.offsetHeight / 2 - 20;
+        if (py > gameHeight - projectile.offsetHeight / 2 - 20) continue;
+        if (px > gameWidth) break;
+        createAimDot(px, py);
       }
+    }
 
-      projectile.style.left = px + 'px';
-      projectile.style.top = py + 'px';
+    function setRandomTarget() {
+      targetDistance = 20 + Math.random() * 30;
+      targetPx = targetDistance * pixelsPerMeter;
+      target.style.left = (targetPx - target.offsetWidth / 2) + 'px';
+    }
+
+    function updateLabels() {
+      angleValue.textContent = angleRange.value;
+      speedValue.textContent = speedRange.value;
+      updateAimDots();
+    }
+
+    angleRange.addEventListener('input', () => {
+      if (flying) return;
+      updateLabels();
+      info.textContent = '';
+    });
+
+    speedRange.addEventListener('input', () => {
+      if (flying) return;
+      updateLabels();
+      info.textContent = '';
+    });
+
+    function launch() {
+      if (flying) return;
+      flying = true;
+      launchTime = null;
+      clearAimDots();
+      info.textContent = 'Projectile launched!';
+
+      const angle = parseFloat(angleRange.value) * Math.PI / 180;
+      const speed = parseFloat(speedRange.value);
+
+      function animate(t) {
+        if (!launchTime) launchTime = t;
+        const elapsed = (t - launchTime) / 1000;
+
+        let x = speed * Math.cos(angle) * elapsed;
+        let y = speed * Math.sin(angle) * elapsed - 0.5 * gravity * elapsed * elapsed;
+
+        let px = x * pixelsPerMeter;
+        let py = gameHeight - (y * pixelsPerMeter) - projectile.offsetHeight / 2 - 20;
+
+        if (py > gameHeight - projectile.offsetHeight / 2 - 20) {
+          flying = false;
+          cancelAnimationFrame(animationFrame);
+          checkHit(px, py);
+          return;
+        } else if (px > gameWidth) {
+          flying = false;
+          cancelAnimationFrame(animationFrame);
+          info.textContent = 'Projectile flew out of bounds!';
+          return;
+        }
+
+        projectile.style.left = px + 'px';
+        projectile.style.top = py + 'px';
+
+        animationFrame = requestAnimationFrame(animate);
+      }
 
       animationFrame = requestAnimationFrame(animate);
     }
-    animationFrame = requestAnimationFrame(animate);
-  }
 
-  function checkHit(px) {
-    const ballRadius = projectile.offsetWidth / 2;
-    const targetRadius = target.offsetWidth / 2;
-    const dist = Math.abs((px + ballRadius) - (targetPx + targetRadius));
+    function checkHit(px, py) {
+      const ballRadius = projectile.offsetWidth / 2;
+      const targetRadius = target.offsetWidth / 2;
 
-    if (dist <= ballRadius + targetRadius) {
-      info.textContent = '🎉 Hit! Great aim.';
-    } else {
-      info.textContent = `Missed! Target was at ${targetDistance.toFixed(1)} meters. Try again!`;
+      const targetCenterX = targetPx + targetRadius;
+      const targetCenterY = gameHeight - targetRadius - 10;  // changed to bottom:10px
+
+      const projCenterX = px + ballRadius;
+      const projCenterY = py + ballRadius;
+
+      const dist = Math.hypot(projCenterX - targetCenterX, projCenterY - targetCenterY);
+
+      if (dist <= ballRadius + targetRadius) {
+        info.textContent = '🎉 Hit! Great aim.';
+      } else {
+        info.textContent = `Missed! Target was at ${targetDistance.toFixed(1)} meters. Try again!`;
+      }
     }
-  }
 
-  launchBtn.addEventListener('click', launch);
+    launchBtn.addEventListener('click', launch);
 
-  resetBtn.addEventListener('click', () => {
-    if (animationFrame) {
-      cancelAnimationFrame(animationFrame);
-    }
-    flying = false;
-    projectile.style.left = '40px';
-    projectile.style.top = (gameHeight - projectile.offsetHeight / 2 - 20) + 'px';
+    resetBtn.addEventListener('click', () => {
+      if (animationFrame) cancelAnimationFrame(animationFrame);
+      flying = false;
+      projectile.style.left = '40px';
+      projectile.style.top = (gameHeight - projectile.offsetHeight / 2 - 20) + 'px';
+      setRandomTarget();
+      updateAimDots();
+      info.textContent = '';
+    });
+
+    // Initial setup
+    updateLabels();
     setRandomTarget();
-    updateAimDots();
-    info.textContent = '';
-  });
-
-  updateLabels();
-  setRandomTarget();
-  projectile.style.top = (gameHeight - projectile.offsetHeight / 2 - 20) + 'px';
-</script>
+    projectile.style.top = (gameHeight - projectile.offsetHeight / 2 - 20) + 'px';
+  </script>
 </body>
 </html>

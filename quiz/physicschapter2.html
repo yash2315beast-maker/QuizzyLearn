@@ -7,18 +7,45 @@
     body {
       font-family: 'Poppins', sans-serif;
       margin: 0;
-      padding: 20px;
+      padding: 0;
       background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
       color: white;
       display: flex;
-      flex-direction: column;
       align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      height: 100vh;
       user-select: none;
       text-align: center;
     }
+
+    /* Back button styling */
+    #backBtn {
+      position: fixed;
+      top: 15px;
+      left: 15px;
+      padding: 10px 20px;
+      background-color: #feca57;
+      color: #222;
+      font-weight: 700;
+      border: none;
+      border-radius: 8px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+      cursor: pointer;
+      z-index: 1000;
+      transition: background-color 0.3s ease, transform 0.2s ease;
+    }
+
+    #backBtn:hover {
+      background-color: #e6b642;
+      transform: translateY(-2px);
+    }
+
     h1 {
       margin-bottom: 20px;
+      text-shadow: 0 0 10px #1abc9c;
     }
+
     #arena {
       position: relative;
       width: 200px;
@@ -30,6 +57,7 @@
       box-shadow: 0 0 20px #16a085;
       margin-bottom: 20px;
     }
+
     #ball {
       position: absolute;
       width: 50px;
@@ -41,6 +69,7 @@
       top: 0;
       box-shadow: 0 0 10px #d35400;
     }
+
     button {
       padding: 12px 26px;
       border-radius: 8px;
@@ -51,37 +80,53 @@
       font-size: 18px;
       cursor: pointer;
       transition: background-color 0.3s;
-      margin: 0 10px;
+      margin: 10px 10px 0 10px;
       user-select: none;
     }
+
     button:hover {
       background-color: #16a085;
     }
+
     #info {
-      margin-top: 15px;
+      margin-top: 20px;
       font-weight: 600;
       font-size: 18px;
       min-height: 70px;
       white-space: pre-line;
     }
+
     #score {
       font-size: 24px;
       font-weight: 800;
       margin-top: 15px;
     }
+
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
   </style>
 </head>
 <body>
+
+  <!-- 🔙 Back Button -->
+  <button id="backBtn" onclick="window.history.back()">Back</button>
+
   <h1>Gravity Drop Challenge</h1>
+
   <div id="arena">
     <div id="ball"></div>
   </div>
-  <div>
+
+  <div class="controls">
     <button id="startBtn">Start Drop</button>
     <button id="guessBtn" disabled>My Guess: Ball Hits Ground NOW</button>
     <button id="resetBtn" disabled>Reset</button>
   </div>
-  <div id="info"></div>
+
+  <div id="info">Press Start to drop the ball.</div>
   <div id="score"></div>
 
   <script>
@@ -95,12 +140,12 @@
     const ballHeightPx = 50;
     const dropHeightM = 10; // meters
 
-    let g;     // gravity m/s^2, randomized
-    let totalTime;  // seconds, depends on g
+    let g;
+    let totalTime;
     let animationFrame = null;
     let startTime = null;
     let dropStarted = false;
-    let ballPos = 0; // pixels from top
+    let ballPos = 0;
     let guessTime = null;
     let dropEnded = false;
 
@@ -189,8 +234,6 @@
       info.textContent = "Press Start to drop the ball.";
       scoreDisplay.textContent = "";
     });
-
-    info.textContent = "Press Start to drop the ball.";
   </script>
 </body>
 </html>
