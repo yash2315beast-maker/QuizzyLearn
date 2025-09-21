@@ -1,239 +1,351 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>Physics Game 2: Gravity Drop Challenge</title>
-  <style>
-    body {
-      font-family: 'Poppins', sans-serif;
-      margin: 0;
-      padding: 0;
-      background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
-      color: white;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-direction: column;
-      height: 100vh;
-      user-select: none;
-      text-align: center;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lighthouse Keeper</title>
+    <style>
+        :root {
+            --sky-color: #1a237e; /* Dark blue night sky */
+            --water-color: #1c313a;
+            --lighthouse-color: #eceff1;
+            --light-beam-color: rgba(255, 255, 0, 0.7);
+            --text-color: #fafafa;
+            --correct-color: #66bb6a;
+            --incorrect-color: #ef5350;
+        }
 
-    /* Back button styling */
-    #backBtn {
-      position: fixed;
-      top: 15px;
-      left: 15px;
-      padding: 10px 20px;
-      background-color: #feca57;
-      color: #222;
-      font-weight: 700;
-      border: none;
-      border-radius: 8px;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-      cursor: pointer;
-      z-index: 1000;
-      transition: background-color 0.3s ease, transform 0.2s ease;
-    }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(to bottom, var(--sky-color) 60%, var(--water-color) 100%);
+            color: var(--text-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+            text-align: center;
+        }
+        
+        .back-btn {
+            position: fixed; 
+            top: 20px; 
+            left: 20px; 
+            z-index: 100;
+            background: rgba(255, 255, 255, 0.1);
+            width: 50px; 
+            height: 50px;
+            border-radius: 50%; 
+            border: 2px solid var(--text-color); 
+            color: var(--text-color);
+            font-size: 1.8rem; 
+            text-decoration: none; 
+            display: flex;
+            align-items: center; 
+            justify-content: center; 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+        }
+        .back-btn:hover { 
+            background: var(--text-color); 
+            color: var(--sky-color); 
+            transform: scale(1.1); 
+        }
 
-    #backBtn:hover {
-      background-color: #e6b642;
-      transform: translateY(-2px);
-    }
+        #game-container {
+            width: 90%;
+            max-width: 800px;
+            background-color: rgba(0, 0, 0, 0.2);
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+        }
 
-    h1 {
-      margin-bottom: 20px;
-      text-shadow: 0 0 10px #1abc9c;
-    }
+        h1 {
+            margin-top: 0;
+        }
 
-    #arena {
-      position: relative;
-      width: 200px;
-      height: 400px;
-      background: linear-gradient(to top, #34495e 0%, #7f8c8d 100%);
-      border-radius: 12px;
-      border: 3px solid #1abc9c;
-      overflow: hidden;
-      box-shadow: 0 0 20px #16a085;
-      margin-bottom: 20px;
-    }
+        #scene {
+            position: relative;
+            height: 150px;
+            margin-bottom: 20px;
+        }
 
-    #ball {
-      position: absolute;
-      width: 50px;
-      height: 50px;
-      border-radius: 50%;
-      background: radial-gradient(circle at center, #f39c12, #d35400);
-      left: 50%;
-      transform: translateX(-50%);
-      top: 0;
-      box-shadow: 0 0 10px #d35400;
-    }
+        #lighthouse {
+            position: absolute;
+            bottom: 0;
+            left: 20%;
+            width: 50px;
+            height: 120px;
+            background-color: var(--lighthouse-color);
+            clip-path: polygon(20% 0, 80% 0, 100% 100%, 0% 100%);
+        }
+        #lighthouse-top {
+            position: absolute;
+            bottom: 120px;
+            left: calc(20% - 10px);
+            width: 70px;
+            height: 20px;
+            background-color: #c62828;
+            border-radius: 5px 5px 0 0;
+        }
+        #light-beam {
+            position: absolute;
+            bottom: 110px;
+            left: calc(20% + 50px);
+            height: 30px;
+            width: 0; /* Starts at 0 width */
+            background: var(--light-beam-color);
+            clip-path: polygon(0 0, 100% -50%, 100% 150%, 0% 100%); /* Angled beam */
+            transition: width 0.5s ease-in-out;
+        }
+        
+        #ship {
+            position: absolute;
+            bottom: 10px;
+            right: -100px; /* Starts off-screen */
+            width: 80px;
+            font-size: 50px;
+            transition: right 2s ease-in-out;
+        }
 
-    button {
-      padding: 12px 26px;
-      border-radius: 8px;
-      border: none;
-      background-color: #1abc9c;
-      color: #fff;
-      font-weight: 700;
-      font-size: 18px;
-      cursor: pointer;
-      transition: background-color 0.3s;
-      margin: 10px 10px 0 10px;
-      user-select: none;
-    }
+        #ship.safe {
+            right: 15%; /* Moves on-screen when safe */
+        }
+        
+        #quiz-area {
+            min-height: 250px;
+        }
 
-    button:hover {
-      background-color: #16a085;
-    }
+        #question-text {
+            font-size: 1.5em;
+            margin-bottom: 20px;
+            min-height: 50px;
+        }
+        
+        #answer-options {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
 
-    #info {
-      margin-top: 20px;
-      font-weight: 600;
-      font-size: 18px;
-      min-height: 70px;
-      white-space: pre-line;
-    }
+        .btn {
+            padding: 15px;
+            font-size: 1.1em;
+            cursor: pointer;
+            border: none;
+            border-radius: 8px;
+            background-color: #455a64;
+            color: var(--text-color);
+            transition: background-color 0.2s, transform 0.1s;
+        }
+        .btn:hover:not(:disabled) {
+            background-color: #607d8b;
+            transform: translateY(-2px);
+        }
+        .btn:disabled {
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
 
-    #score {
-      font-size: 24px;
-      font-weight: 800;
-      margin-top: 15px;
-    }
+        #next-question-btn {
+            margin-top: 20px;
+            background-color: #1976d2;
+            width: 50%;
+        }
 
-    .controls {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-    }
-  </style>
+        .hidden {
+            display: none;
+        }
+    </style>
 </head>
 <body>
 
-  <!-- 🔙 Back Button -->
-  <button id="backBtn" onclick="window.history.back()">Back</button>
+    <a href="physics-quiz.html" class="back-btn" aria-label="Go back">&#8592;</a>
 
-  <h1>Gravity Drop Challenge</h1>
+    <div id="game-container">
+        <h1>Lighthouse Keeper</h1>
+        <p>A ship is lost! Answer correctly to power the beacon and guide it home.</p>
 
-  <div id="arena">
-    <div id="ball"></div>
-  </div>
+        <div id="scene">
+            <div id="lighthouse-top"></div>
+            <div id="lighthouse"></div>
+            <div id="light-beam"></div>
+            <div id="ship">🚢</div>
+        </div>
 
-  <div class="controls">
-    <button id="startBtn">Start Drop</button>
-    <button id="guessBtn" disabled>My Guess: Ball Hits Ground NOW</button>
-    <button id="resetBtn" disabled>Reset</button>
-  </div>
+        <div id="quiz-area">
+            <div id="question-text">Welcome! Click "Start Game" to begin.</div>
+            <div id="answer-options" class="hidden">
+                <button class="btn answer-btn"></button>
+                <button class="btn answer-btn"></button>
+                <button class="btn answer-btn"></button>
+                <button class="btn answer-btn"></button>
+            </div>
+            <button class="btn" id="next-question-btn">Start Game</button>
+        </div>
+    </div>
 
-  <div id="info">Press Start to drop the ball.</div>
-  <div id="score"></div>
+    <script>
+        const questions = [
+            {
+                q: "Which of these is a natural source of light?",
+                options: ["A light bulb", "The Sun", "A candle", "A mirror"],
+                answer: 1
+            },
+            {
+                q: "An object that does NOT produce its own light is called...",
+                options: ["Luminous", "Transparent", "Non-luminous", "Opaque"],
+                answer: 2
+            },
+            {
+                q: "Light travels in...",
+                options: ["Curved paths", "Zig-zag lines", "Circles", "Straight lines"],
+                answer: 3
+            },
+            {
+                q: "What is it called when light bounces off a surface?",
+                options: ["Refraction", "Absorption", "Reflection", "Shadow"],
+                answer: 2
+            },
+            {
+                q: "An object that blocks all light from passing through is...",
+                options: ["Transparent", "Translucent", "Opaque", "Luminous"],
+                answer: 2
+            },
+            {
+                q: "What is formed when an opaque object blocks the path of light?",
+                options: ["A reflection", "A shadow", "A rainbow", "An image"],
+                answer: 1
+            },
+            {
+                q: "Which surface would cause the clearest reflection (like a mirror)?",
+                options: ["A wooden table", "A piece of paper", "A smooth, shiny metal plate", "A brick wall"],
+                answer: 2
+            },
+            {
+                q: "You can see through a clear glass window because it is...",
+                options: ["Opaque", "Translucent", "Transparent", "Reflective"],
+                answer: 2
+            },
+             {
+                q: "The Moon shines because it...",
+                options: ["Creates its own light", "Is a star", "Reflects light from the Sun", "Is on fire"],
+                answer: 2
+            },
+            {
+                q: "A flat, smooth mirror is also known as a...",
+                options: ["Curved mirror", "Plane mirror", "Lens", "Prism"],
+                answer: 1
+            }
+        ];
 
-  <script>
-    const ball = document.getElementById('ball');
-    const startBtn = document.getElementById('startBtn');
-    const guessBtn = document.getElementById('guessBtn');
-    const resetBtn = document.getElementById('resetBtn');
-    const info = document.getElementById('info');
-    const scoreDisplay = document.getElementById('score');
-    const arenaHeightPx = 400;
-    const ballHeightPx = 50;
-    const dropHeightM = 10; // meters
+        const WINNING_SCORE = 7;
 
-    let g;
-    let totalTime;
-    let animationFrame = null;
-    let startTime = null;
-    let dropStarted = false;
-    let ballPos = 0;
-    let guessTime = null;
-    let dropEnded = false;
+        // DOM Elements
+        const questionText = document.getElementById('question-text');
+        const answerOptionsDiv = document.getElementById('answer-options');
+        const answerBtns = document.querySelectorAll('.answer-btn');
+        const nextQuestionBtn = document.getElementById('next-question-btn');
+        const lightBeam = document.getElementById('light-beam');
+        const ship = document.getElementById('ship');
 
-    function randomizeGravity() {
-      g = 5 + Math.random() * 10;  // gravity between 5 and 15 m/s^2
-      totalTime = Math.sqrt(2 * dropHeightM / g);
-    }
+        // Game State
+        let score = 0;
+        let availableQuestions = [];
+        let currentQuestion = {};
+        
+        function startGame() {
+            score = 0;
+            availableQuestions = [...questions];
+            nextQuestionBtn.textContent = 'Next Question';
+            ship.classList.remove('safe');
+            updateBeam();
+            displayNewQuestion();
+        }
 
-    function updatePosition(timeSinceStart) {
-      const s = 0.5 * g * timeSinceStart * timeSinceStart;
-      ballPos = (s / dropHeightM) * (arenaHeightPx - ballHeightPx);
-      if (ballPos > arenaHeightPx - ballHeightPx) ballPos = arenaHeightPx - ballHeightPx;
-      ball.style.top = ballPos + "px";
+        function displayNewQuestion() {
+            if (availableQuestions.length === 0) {
+                endGame(false); // No more questions
+                return;
+            }
 
-      const velocity = g * timeSinceStart;
-      const distanceLeft = dropHeightM - s;
+            // Reset button colors and enable them
+            answerBtns.forEach(btn => {
+                btn.style.backgroundColor = '';
+                btn.disabled = false;
+            });
 
-      info.textContent = `Gravity: ${g.toFixed(2)} m/s²\nTime: ${timeSinceStart.toFixed(2)} s\nVelocity: ${velocity.toFixed(2)} m/s\nDistance left: ${distanceLeft.toFixed(2)} m`;
-    }
+            // Get a random question
+            const qIndex = Math.floor(Math.random() * availableQuestions.length);
+            currentQuestion = availableQuestions.splice(qIndex, 1)[0];
 
-    function animate(timestamp) {
-      if (!startTime) startTime = timestamp;
-      const elapsed = (timestamp - startTime) / 1000;
-      updatePosition(elapsed);
+            questionText.textContent = currentQuestion.q;
+            answerBtns.forEach((btn, index) => {
+                btn.textContent = currentQuestion.options[index];
+            });
 
-      if (elapsed >= totalTime) {
-        info.textContent += "\nBall has hit the ground!";
-        dropEnded = true;
-        guessBtn.disabled = true;
-        resetBtn.disabled = false;
-        startBtn.disabled = true;
-        animationFrame = null;
-        showScore();
-        return;
-      }
-      animationFrame = requestAnimationFrame(animate);
-    }
+            answerOptionsDiv.classList.remove('hidden');
+            nextQuestionBtn.classList.add('hidden');
+        }
 
-    function showScore() {
-      if (guessTime === null) {
-        scoreDisplay.textContent = "You did not guess!";
-      } else {
-        const diff = Math.abs(guessTime - totalTime);
-        let score = Math.max(0, 100 - diff * 100);
-        score = Math.round(score);
-        scoreDisplay.textContent = `Your guess was off by ${diff.toFixed(2)} seconds. Score: ${score} / 100`;
-      }
-    }
+        function selectAnswer(selectedIndex) {
+            const correct = selectedIndex === currentQuestion.answer;
 
-    startBtn.addEventListener('click', () => {
-      if (dropStarted) return;
-      dropStarted = true;
-      randomizeGravity();
-      startBtn.disabled = true;
-      guessBtn.disabled = false;
-      resetBtn.disabled = true;
-      scoreDisplay.textContent = "";
-      startTime = null;
-      ballPos = 0;
-      ball.style.top = "0px";
-      dropEnded = false;
-      animationFrame = requestAnimationFrame(animate);
-      guessTime = null;
-      info.textContent = "Ball is dropping...";
-    });
+            // Disable buttons after selection
+            answerBtns.forEach(btn => btn.disabled = true);
 
-    guessBtn.addEventListener('click', () => {
-      if (!dropStarted || dropEnded) return;
-      guessTime = (performance.now() - startTime) / 1000;
-      scoreDisplay.textContent = "Guess recorded! Wait for ball to hit ground...";
-      guessBtn.disabled = true;
-    });
+            if (correct) {
+                score++;
+                answerBtns[selectedIndex].style.backgroundColor = 'var(--correct-color)';
+                questionText.textContent = "Correct! The beacon grows stronger!";
+                updateBeam();
+            } else {
+                answerBtns[selectedIndex].style.backgroundColor = 'var(--incorrect-color)';
+                answerBtns[currentQuestion.answer].style.backgroundColor = 'var(--correct-color)';
+                questionText.textContent = "Not quite. The ship is still waiting...";
+            }
 
-    resetBtn.addEventListener('click', () => {
-      if (animationFrame) {
-        cancelAnimationFrame(animationFrame);
-      }
-      dropStarted = false;
-      startBtn.disabled = false;
-      guessBtn.disabled = true;
-      resetBtn.disabled = true;
-      ballPos = 0;
-      ball.style.top = "0px";
-      guessTime = null;
-      dropEnded = false;
-      info.textContent = "Press Start to drop the ball.";
-      scoreDisplay.textContent = "";
-    });
-  </script>
+            if (score >= WINNING_SCORE) {
+                endGame(true);
+            } else {
+                nextQuestionBtn.classList.remove('hidden');
+            }
+        }
+        
+        function updateBeam() {
+            const beamPercentage = (score / WINNING_SCORE) * 100;
+            lightBeam.style.width = `${beamPercentage * 3}px`; // Adjust multiplier for visual effect
+        }
+
+        function endGame(isWin) {
+            answerOptionsDiv.classList.add('hidden');
+            if (isWin) {
+                questionText.textContent = "Full Power! You saved the ship!";
+                ship.classList.add('safe');
+                nextQuestionBtn.textContent = 'Play Again?';
+            } else {
+                questionText.textContent = "Oh no, we ran out of questions! Let's try again.";
+                nextQuestionBtn.textContent = 'Restart Game';
+            }
+            nextQuestionBtn.classList.remove('hidden');
+        }
+
+
+        // Event Listeners
+        nextQuestionBtn.addEventListener('click', () => {
+            if (nextQuestionBtn.textContent.includes('Game') || nextQuestionBtn.textContent.includes('Again')) {
+                startGame();
+            } else {
+                displayNewQuestion();
+            }
+        });
+
+        answerBtns.forEach((btn, index) => {
+            btn.addEventListener('click', () => selectAnswer(index));
+        });
+
+    </script>
 </body>
 </html>

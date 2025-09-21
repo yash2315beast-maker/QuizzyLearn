@@ -1,330 +1,398 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>Projectile Motion Challenge with Back Button</title>
-  <style>
-    html, body {
-      margin: 0;
-      padding: 0;
-      height: 100%;
-      font-family: 'Poppins', sans-serif;
-      background: linear-gradient(135deg, #0a3d62, #3c6382);
-      color: white;
-      user-select: none;
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cannon Commander: Projectile Motion</title>
+<link href="https://fonts.googleapis.com/css2?family=IM+Fell+English+SC&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+<style>
+    :root {
+        --sky-color: #87CEEB;
+        --ground-color: #6B8E23;
+        --ui-bg: #D2B48C;
+        --ui-border: #8B4513;
+        --text-color: #3a240a;
     }
 
     body {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
+        font-family: 'Roboto', sans-serif;
+        background-color: var(--sky-color);
+        color: var(--text-color);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        margin: 0;
+        overflow: hidden;
     }
 
-    #backBtn {
-      position: fixed;
-      top: 15px;
-      left: 15px;
-      background-color: #feca57;
-      color: #222;
-      font-weight: 700;
-      border: none;
-      border-radius: 6px;
-      padding: 10px 18px;
-      cursor: pointer;
-      font-size: 1rem;
-      transition: background 0.3s;
-      z-index: 1000;
+    .back-btn {
+        position: fixed; top: 20px; left: 20px; z-index: 101;
+        background: var(--ui-bg); width: 50px; height: 50px;
+        border-radius: 50%; border: 3px solid var(--ui-border); color: var(--ui-border);
+        font-size: 1.8rem; text-decoration: none; display: flex;
+        align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        transition: all 0.3s ease;
+    }
+    .back-btn:hover { background: var(--ui-border); color: white; transform: scale(1.1); }
+
+    #game-container { width: 100%; height: 100%; position: relative; }
+
+    /* --- Game World --- */
+    #game-world {
+        position: absolute;
+        bottom: 150px; /* Space for UI panel */
+        width: 100%;
+        height: calc(100% - 150px);
     }
 
-    #backBtn:hover {
-      background-color: #e6b642;
+    #ground {
+        position: absolute;
+        bottom: 0;
+        width: 100%;
+        height: 50px;
+        background: var(--ground-color);
     }
-
-    h1 {
-      margin-top: 0;
-      margin-bottom: 20px;
-      text-shadow: 0 0 10px #222;
-    }
-
-    #game-area {
-      position: relative;
-      width: 700px;
-      height: 400px;
-      background: #130f40;
-      border-radius: 12px;
-      box-shadow: 0 0 15px #6a89cc;
-      overflow: hidden;
-      margin-bottom: 20px;
-    }
-
-    #projectile {
-      position: absolute;
-      width: 20px;
-      height: 20px;
-      background: radial-gradient(circle at center, #555, #111);
-      border-radius: 50%;
-      bottom: 20px;
-      left: 40px;
-      box-shadow: 0 0 10px #222;
-      transform: translate(-50%, 0);
+    
+    #cannon {
+        position: absolute;
+        bottom: 45px;
+        left: 50px;
+        font-size: 80px;
+        transform-origin: 30% 70%;
+        transition: transform 0.1s linear;
     }
 
     #target {
-      position: absolute;
-      bottom: 10px;       /* lowered target by 10px */
-      width: 20px;        /* smaller width */
-      height: 20px;       /* smaller height */
-      background: radial-gradient(circle at center, #e74c3c, #c0392b);
-      border-radius: 50%;
-      box-shadow: 0 0 15px #e74c3c;
+        position: absolute;
+        bottom: 45px;
+        font-size: 100px;
+        transition: all 0.5s ease;
     }
 
-    .aim-dot {
-      position: absolute;
-      background-color: #f1c40f;
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-      filter: drop-shadow(0 0 4px #f39c12);
-      pointer-events: none;
+    #projectile {
+        position: absolute;
+        width: 25px;
+        height: 25px;
+        background-color: #333;
+        border-radius: 50%;
+        display: none; /* Hidden until fired */
     }
 
-    .controls {
-      display: flex;
-      justify-content: center;
-      gap: 40px;
-      flex-wrap: wrap;
-      margin-bottom: 20px;
+    #trajectory-path {
+        position: absolute;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        pointer-events: none;
     }
 
-    label {
-      font-weight: 600;
-      font-size: 16px;
+    /* --- UI Panel --- */
+    #ui-panel {
+        position: absolute;
+        bottom: 0;
+        width: 100%;
+        height: 150px;
+        background: var(--ui-bg);
+        border-top: 5px solid var(--ui-border);
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        padding: 0 20px;
+        box-shadow: 0 -5px 15px rgba(0,0,0,0.2);
     }
 
-    input[type="range"] {
-      width: 150px;
-      cursor: pointer;
-      border-radius: 10px;
+    .control-group { text-align: center; }
+    .control-group label {
+        font-family: 'IM Fell English SC', serif;
+        font-size: 1.5rem;
+        display: block;
+        margin-bottom: 10px;
     }
+    .control-group input[type="range"] {
+        width: 200px;
+    }
+    #fire-btn {
+        padding: 20px 40px;
+        font-family: 'IM Fell English SC', serif;
+        font-size: 2rem;
+        background: #cd5c5c;
+        color: white;
+        border: 3px solid #8b0000;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: all 0.1s;
+    }
+    #fire-btn:hover { background-color: #e9967a; }
+    #fire-btn:active { transform: scale(0.95); }
+    #fire-btn:disabled { background-color: #aaa; border-color: #666; cursor: not-allowed; }
 
-    button {
-      padding: 10px 22px;
-      margin: 10px 10px 0 10px;
-      border-radius: 8px;
-      background: #78e08f;
-      border: none;
-      color: #130f40;
-      font-size: 1.1rem;
-      font-weight: 700;
-      cursor: pointer;
-      transition: background 0.25s;
-      user-select: none;
+    /* --- Modals --- */
+    .modal {
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(0,0,0,0.6); display: flex; justify-content: center;
+        align-items: center; z-index: 100; transition: opacity 0.3s;
     }
-
-    button:hover {
-      background: #38ada9;
+    .modal.hidden { opacity: 0; pointer-events: none; }
+    .modal-content {
+        background: var(--ui-bg); padding: 30px; border-radius: 15px;
+        border: 5px solid var(--ui-border); width: 90%; max-width: 500px;
+        text-align: center; box-shadow: 0 5px 20px rgba(0,0,0,0.3);
     }
-
-    #info {
-      font-size: 18px;
-      font-weight: 600;
-      min-height: 60px;
-      white-space: pre-line;
-      margin-top: 10px;
+    .modal-content h2 { font-family: 'IM Fell English SC', serif; font-size: 2.5em; margin-top: 0; }
+    #quiz-options { display: flex; flex-direction: column; gap: 10px; margin-top: 20px; }
+    .option-btn {
+        padding: 12px; border: 2px solid var(--ui-border); background: #f5deb3;
+        border-radius: 8px; font-size: 1em; cursor: pointer; transition: all 0.2s;
     }
-  </style>
+    .option-btn:hover { background: #ffe4b5; }
+    .option-btn.correct { background: #90ee90; }
+    .option-btn.incorrect { background: #f08080; }
+    
+    @media (max-width: 768px) {
+        #ui-panel { flex-direction: column; height: auto; padding: 15px; }
+        .control-group input[type="range"] { width: 90vw; max-width: 300px; }
+        #fire-btn { margin-top: 15px; }
+    }
+</style>
 </head>
 <body>
 
-  <button id="backBtn" onclick="goBack()">Back</button>
+<a href="physics-quiz.html" class="back-btn" aria-label="Go back">&#8592;</a>
 
-  <h1>Projectile Motion Challenge</h1>
-
-  <div id="game-area">
-    <div id="projectile"></div>
-    <div id="target"></div>
-  </div>
-
-  <div class="controls">
-    <div>
-      <label for="angleRange">Angle (degrees): <span id="angleValue">45</span></label><br />
-      <input id="angleRange" type="range" min="10" max="80" value="45" />
+<div id="game-container">
+    <div id="game-world">
+        <div id="ground"></div>
+        <div id="cannon">💣</div>
+        <div id="target">🏰</div>
+        <div id="projectile"></div>
+        <svg id="trajectory-path"></svg>
     </div>
-    <div>
-      <label for="speedRange">Speed (m/s): <span id="speedValue">25</span></label><br />
-      <input id="speedRange" type="range" min="10" max="40" value="25" />
+
+    <div id="ui-panel">
+        <div class="control-group">
+            <label for="angle-slider">Angle: <span id="angle-value">45</span>°</label>
+            <input type="range" id="angle-slider" min="15" max="85" value="45">
+        </div>
+        <div class="control-group">
+            <label for="power-slider">Power: <span id="power-value">50</span></label>
+            <input type="range" id="power-slider" min="10" max="100" value="50">
+        </div>
+        <button id="fire-btn">FIRE!</button>
     </div>
-  </div>
+</div>
 
-  <div>
-    <button id="launchBtn">Launch</button>
-    <button id="resetBtn">Restart</button>
-  </div>
+<!-- Modals -->
+<div id="quiz-modal" class="modal hidden">
+    <div class="modal-content">
+        <h2 id="level-title">Level 1: Pop Quiz!</h2>
+        <p id="quiz-question">What is the curved path an object follows when thrown?</p>
+        <div id="quiz-options">
+            <button class="option-btn">Trajectory</button>
+            <button class="option-btn">Velocity</button>
+            <button class="option-btn">Gravity</button>
+        </div>
+        <p id="quiz-feedback" style="font-weight: bold; min-height: 24px;"></p>
+    </div>
+</div>
 
-  <div id="info"></div>
+<script>
+const levels = [
+    { targetX: 600, targetY: 45, question: "What is the curved path an object follows when thrown?", options: ["Trajectory", "Velocity", "Gravity"], answer: 0 },
+    { targetX: 900, targetY: 45, question: "What force pulls a projectile down towards Earth?", options: ["Friction", "Gravity", "Thrust"], answer: 1 },
+    { targetX: 700, targetY: 150, question: "The best angle to get the maximum distance is usually...", options: ["90 degrees", "45 degrees", "20 degrees"], answer: 1 },
+    { targetX: 1100, targetY: 45, question: "The initial 'push' or speed given to a projectile is its...", options: ["Angle", "Inertia", "Velocity"], answer: 2 }
+];
 
-  <script>
-    function goBack() {
-      window.history.back();
+// DOM Elements
+const cannon = document.getElementById('cannon');
+const projectile = document.getElementById('projectile');
+const target = document.getElementById('target');
+const angleSlider = document.getElementById('angle-slider');
+const powerSlider = document.getElementById('power-slider');
+const angleValue = document.getElementById('angle-value');
+const powerValue = document.getElementById('power-value');
+const fireBtn = document.getElementById('fire-btn');
+const trajectoryPath = document.getElementById('trajectory-path');
+// Quiz Modal Elements
+const quizModal = document.getElementById('quiz-modal');
+const levelTitle = document.getElementById('level-title');
+const quizQuestion = document.getElementById('quiz-question');
+const quizOptions = document.getElementById('quiz-options');
+const quizFeedback = document.getElementById('quiz-feedback');
+
+// Game State
+let currentLevel = 0;
+let isFiring = false;
+let hasTrajectoryGuide = false;
+
+// Physics Constants
+const GRAVITY = 0.2;
+const CANNON_ORIGIN_X = 90;
+const CANNON_ORIGIN_Y = 80;
+
+// --- Game Logic ---
+function setupLevel(levelIndex) {
+    if (levelIndex >= levels.length) {
+        levelTitle.textContent = "You Win!";
+        quizQuestion.textContent = "Congratulations, Commander! You have mastered projectile motion.";
+        quizOptions.innerHTML = '<button class="option-btn" onclick="initGame()">Play Again</button>';
+        quizModal.classList.remove('hidden');
+        return;
     }
-
-    const projectile = document.getElementById('projectile');
-    const target = document.getElementById('target');
-    const gameArea = document.getElementById('game-area');
-    const angleRange = document.getElementById('angleRange');
-    const speedRange = document.getElementById('speedRange');
-    const angleValue = document.getElementById('angleValue');
-    const speedValue = document.getElementById('speedValue');
-    const launchBtn = document.getElementById('launchBtn');
-    const resetBtn = document.getElementById('resetBtn');
-    const info = document.getElementById('info');
-
-    const gravity = 9.81;
-    const gameWidth = gameArea.clientWidth;
-    const gameHeight = gameArea.clientHeight;
-    const pixelsPerMeter = gameWidth / 60;
-
-    let targetDistance, targetPx;
-    let animationFrame = null;
-    let launchTime = null;
-    let flying = false;
-    let aimDots = [];
-
-    function createAimDot(x, y) {
-      const dot = document.createElement('div');
-      dot.className = 'aim-dot';
-      dot.style.left = x + 'px';
-      dot.style.top = y + 'px';
-      gameArea.appendChild(dot);
-      aimDots.push(dot);
-    }
-
-    function clearAimDots() {
-      aimDots.forEach(dot => dot.remove());
-      aimDots = [];
-    }
-
-    function updateAimDots() {
-      clearAimDots();
-      const angle = parseFloat(angleRange.value) * Math.PI / 180;
-      const speed = parseFloat(speedRange.value);
-      const dotsCount = 3;
-      const maxT = 1;
-      for (let i = 1; i <= dotsCount; i++) {
-        const t = (i / dotsCount) * maxT;
-        let x = speed * Math.cos(angle) * t;
-        let y = speed * Math.sin(angle) * t - 0.5 * gravity * t * t;
-        let px = x * pixelsPerMeter;
-        let py = gameHeight - (y * pixelsPerMeter) - projectile.offsetHeight / 2 - 20;
-        if (py > gameHeight - projectile.offsetHeight / 2 - 20) continue;
-        if (px > gameWidth) break;
-        createAimDot(px, py);
-      }
-    }
-
-    function setRandomTarget() {
-      targetDistance = 20 + Math.random() * 30;
-      targetPx = targetDistance * pixelsPerMeter;
-      target.style.left = (targetPx - target.offsetWidth / 2) + 'px';
-    }
-
-    function updateLabels() {
-      angleValue.textContent = angleRange.value;
-      speedValue.textContent = speedRange.value;
-      updateAimDots();
-    }
-
-    angleRange.addEventListener('input', () => {
-      if (flying) return;
-      updateLabels();
-      info.textContent = '';
+    
+    currentLevel = levelIndex;
+    const level = levels[currentLevel];
+    
+    // Position target
+    target.style.left = `${level.targetX}px`;
+    target.style.bottom = `${level.targetY}px`;
+    
+    // Setup quiz
+    levelTitle.textContent = `Level ${currentLevel + 1}: Pop Quiz!`;
+    quizQuestion.textContent = level.question;
+    quizFeedback.textContent = '';
+    quizOptions.innerHTML = '';
+    level.options.forEach((opt, index) => {
+        const btn = document.createElement('button');
+        btn.className = 'option-btn';
+        btn.textContent = opt;
+        btn.onclick = () => checkQuizAnswer(index === level.answer);
+        quizOptions.appendChild(btn);
     });
 
-    speedRange.addEventListener('input', () => {
-      if (flying) return;
-      updateLabels();
-      info.textContent = '';
-    });
+    fireBtn.disabled = true;
+    quizModal.classList.remove('hidden');
+}
 
-    function launch() {
-      if (flying) return;
-      flying = true;
-      launchTime = null;
-      clearAimDots();
-      info.textContent = 'Projectile launched!';
+function checkQuizAnswer(isCorrect) {
+    hasTrajectoryGuide = isCorrect;
+    document.querySelectorAll('.option-btn').forEach(btn => btn.disabled = true);
 
-      const angle = parseFloat(angleRange.value) * Math.PI / 180;
-      const speed = parseFloat(speedRange.value);
+    if (isCorrect) {
+        quizFeedback.textContent = "Correct! You've earned a Trajectory Guide for this shot.";
+    } else {
+        quizFeedback.textContent = "Not quite. You'll have to aim carefully!";
+    }
 
-      function animate(t) {
-        if (!launchTime) launchTime = t;
-        const elapsed = (t - launchTime) / 1000;
+    setTimeout(() => {
+        quizModal.classList.add('hidden');
+        fireBtn.disabled = false;
+        if (hasTrajectoryGuide) {
+            drawTrajectory();
+        }
+    }, 2000);
+}
 
-        let x = speed * Math.cos(angle) * elapsed;
-        let y = speed * Math.sin(angle) * elapsed - 0.5 * gravity * elapsed * elapsed;
 
-        let px = x * pixelsPerMeter;
-        let py = gameHeight - (y * pixelsPerMeter) - projectile.offsetHeight / 2 - 20;
+function fire() {
+    if (isFiring) return;
+    isFiring = true;
+    fireBtn.disabled = true;
+    trajectoryPath.innerHTML = ''; // Clear guide
 
-        if (py > gameHeight - projectile.offsetHeight / 2 - 20) {
-          flying = false;
-          cancelAnimationFrame(animationFrame);
-          checkHit(px, py);
-          return;
-        } else if (px > gameWidth) {
-          flying = false;
-          cancelAnimationFrame(animationFrame);
-          info.textContent = 'Projectile flew out of bounds!';
-          return;
+    const angle = parseFloat(angleSlider.value);
+    const power = parseFloat(powerSlider.value) / 4; // Scale power for better feel
+    
+    const rad = angle * Math.PI / 180;
+    let vx = Math.cos(rad) * power;
+    let vy = -Math.sin(rad) * power; // Y is inverted on screen
+
+    let projX = CANNON_ORIGIN_X;
+    let projY = window.innerHeight - 150 - CANNON_ORIGIN_Y;
+
+    projectile.style.left = `${projX}px`;
+    projectile.style.top = `${projY}px`;
+    projectile.style.display = 'block';
+    
+    const groundLevel = window.innerHeight - 150 - 50 - 12; // 150 UI, 50 ground, 12 half projectile
+
+    function animate() {
+        vy += GRAVITY;
+        projX += vx;
+        projY += vy;
+
+        projectile.style.left = `${projX}px`;
+        projectile.style.top = `${projY}px`;
+        
+        // Check for hit
+        const targetRect = target.getBoundingClientRect();
+        if (projX >= targetRect.left && projX <= targetRect.right &&
+            projY >= targetRect.top && projY <= targetRect.bottom) {
+            
+            projectile.style.display = 'none';
+            isFiring = false;
+            alert('HIT! Proceeding to next level.');
+            setupLevel(currentLevel + 1);
+            return;
         }
 
-        projectile.style.left = px + 'px';
-        projectile.style.top = py + 'px';
+        // Check for miss
+        if (projY > groundLevel || projX > window.innerWidth) {
+            projectile.style.display = 'none';
+            isFiring = false;
+            fireBtn.disabled = false;
+            alert('MISS! Try again.');
+            return;
+        }
 
-        animationFrame = requestAnimationFrame(animate);
-      }
+        requestAnimationFrame(animate);
+    }
+    animate();
+}
 
-      animationFrame = requestAnimationFrame(animate);
+function drawTrajectory() {
+    if (isFiring) return;
+    const angle = parseFloat(angleSlider.value);
+    const power = parseFloat(powerSlider.value) / 4;
+    const rad = angle * Math.PI / 180;
+    let vx = Math.cos(rad) * power;
+    let vy = -Math.sin(rad) * power;
+    let x = CANNON_ORIGIN_X;
+    let y = window.innerHeight - 150 - CANNON_ORIGIN_Y;
+    const groundLevel = window.innerHeight - 150 - 50;
+
+    let pathData = `M ${x} ${y}`;
+    for (let t = 0; t < 200; t++) {
+        vy += GRAVITY;
+        x += vx;
+        y += vy;
+        if (y > groundLevel || x > window.innerWidth) break;
+        if (t % 2 === 0) { // Add points to the path
+             pathData += ` L ${x} ${y}`;
+        }
     }
 
-    function checkHit(px, py) {
-      const ballRadius = projectile.offsetWidth / 2;
-      const targetRadius = target.offsetWidth / 2;
+    trajectoryPath.innerHTML = `<path d="${pathData}" stroke="rgba(0,0,0,0.5)" stroke-width="2" fill="none" stroke-dasharray="5,5"/>`;
+}
 
-      const targetCenterX = targetPx + targetRadius;
-      const targetCenterY = gameHeight - targetRadius - 10;  // changed to bottom:10px
-
-      const projCenterX = px + ballRadius;
-      const projCenterY = py + ballRadius;
-
-      const dist = Math.hypot(projCenterX - targetCenterX, projCenterY - targetCenterY);
-
-      if (dist <= ballRadius + targetRadius) {
-        info.textContent = '🎉 Hit! Great aim.';
-      } else {
-        info.textContent = `Missed! Target was at ${targetDistance.toFixed(1)} meters. Try again!`;
-      }
+function updateUI() {
+    // Update labels
+    angleValue.textContent = angleSlider.value;
+    powerValue.textContent = powerSlider.value;
+    
+    // Update cannon angle
+    cannon.style.transform = `rotate(-${angleSlider.value}deg)`;
+    
+    // Update trajectory if guide is active
+    if (hasTrajectoryGuide && !isFiring) {
+        drawTrajectory();
+    } else {
+        trajectoryPath.innerHTML = '';
     }
+}
 
-    launchBtn.addEventListener('click', launch);
+function initGame() {
+    setupLevel(0);
+}
 
-    resetBtn.addEventListener('click', () => {
-      if (animationFrame) cancelAnimationFrame(animationFrame);
-      flying = false;
-      projectile.style.left = '40px';
-      projectile.style.top = (gameHeight - projectile.offsetHeight / 2 - 20) + 'px';
-      setRandomTarget();
-      updateAimDots();
-      info.textContent = '';
-    });
+// Event Listeners
+angleSlider.addEventListener('input', updateUI);
+powerSlider.addEventListener('input', updateUI);
+fireBtn.addEventListener('click', fire);
 
-    // Initial setup
-    updateLabels();
-    setRandomTarget();
-    projectile.style.top = (gameHeight - projectile.offsetHeight / 2 - 20) + 'px';
-  </script>
+// Initial setup
+initGame();
+
+</script>
 </body>
 </html>

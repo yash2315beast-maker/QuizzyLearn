@@ -1,297 +1,385 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>Physics Game 1: Force & Motion Simulator</title>
-  <style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rocket Race: Force & Motion</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+<style>
+    :root {
+        --space-bg: #0c0a1a;
+        --ui-panel-bg: rgba(25, 29, 74, 0.8);
+        --text-color: #e0e6f0;
+        --accent-color: #00d9ff;
+        --correct-color: #4caf50;
+        --incorrect-color: #f44336;
+    }
+
     body {
-      font-family: 'Poppins', sans-serif;
-      margin: 0;
-      padding: 0;
-      background: linear-gradient(135deg, #1e3c72, #2a5298);
-      color: white;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      user-select: none;
-      overflow: hidden;
-      height: 100vh;
+        margin: 0;
+        font-family: 'Roboto', sans-serif;
+        background-color: var(--space-bg);
+        color: var(--text-color);
+        overflow: hidden;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+    }
+    
+    .back-btn {
+        position: fixed;
+        top: 20px;
+        left: 20px;
+        z-index: 50;
+        background: var(--ui-panel-bg);
+        backdrop-filter: blur(5px);
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        border: 2px solid var(--accent-color);
+        color: var(--accent-color);
+        font-size: 1.8rem;
+        font-weight: bold;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
     }
 
-    #backBtn {
-      position: fixed;
-      top: 15px;
-      left: 15px;
-      padding: 10px 18px;
-      font-size: 1rem;
-      background-color: #feca57;
-      color: #222;
-      font-weight: 700;
-      border-radius: 8px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-      z-index: 1000;
-      cursor: pointer;
-      transition: all 0.3s ease;
+    .back-btn:hover {
+        background: var(--accent-color);
+        color: var(--space-bg);
+        transform: scale(1.1);
+        box-shadow: 0 0 15px var(--accent-color);
     }
 
-    #backBtn:hover {
-      background-color: #e6b642;
-      transform: translateY(-2px);
+    #stars {
+        position: fixed;
+        top: 0; left: 0; width: 100%; height: 100%;
+        background-image:
+            radial-gradient(1px 1px at 20px 30px, #eee, rgba(0,0,0,0)),
+            radial-gradient(1px 1px at 40px 70px, #fff, rgba(0,0,0,0)),
+            radial-gradient(1px 1px at 50px 160px, #ddd, rgba(0,0,0,0)),
+            radial-gradient(1px 1px at 90px 40px, #fff, rgba(0,0,0,0)),
+            radial-gradient(2px 2px at 150px 120px, #ddd, rgba(0,0,0,0));
+        background-size: 200px 200px;
+        animation: pan-stars 60s linear infinite;
+    }
+    @keyframes pan-stars {
+        from { background-position: 0 0; }
+        to { background-position: -200px -200px; }
     }
 
-    #container {
-      background: #2c3e50;
-      padding: 20px;
-      border-radius: 15px;
-      max-width: 720px;
-      width: 100%;
-      box-shadow: 0 0 30px #0d47a1;
-      position: relative;
-      z-index: 1;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
+    #game-container {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
     }
 
-    h1 {
-      margin-bottom: 10px;
-      text-align: center;
-      text-shadow: 0 0 10px #0ff, 0 0 20px #0ff;
+    #race-track {
+        height: 300px;
+        position: relative;
+        padding: 40px 0;
     }
 
-    #box-container {
-      position: relative;
-      height: 150px;
-      width: 700px;
-      margin: 20px auto;
-      background: #34495e;
-      border-radius: 10px;
-      border: 2px solid #1abc9c;
-      box-shadow: inset 0 0 20px rgba(0,0,0,0.4);
+    .planet {
+        font-size: 80px;
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+    }
+    #earth { left: 5%; }
+    #mars { right: 5%; }
+
+    .rocket {
+        position: absolute;
+        font-size: 50px;
+        transition: left 0.5s ease-in-out;
+        display: flex;
+        align-items: center;
+    }
+    #player-rocket { top: 35%; left: 10%; }
+    #ai-rocket { top: 65%; left: 10%; }
+
+    .flame {
+        position: absolute;
+        left: -25px;
+        font-size: 25px;
+        transform: rotate(180deg);
+        opacity: 0;
+        transition: opacity 0.1s;
+    }
+    .rocket.thrust .flame {
+        opacity: 1;
+        animation: flicker 0.2s infinite;
+    }
+    @keyframes flicker {
+        0%, 100% { transform: rotate(180deg) scale(1); }
+        50% { transform: rotate(180deg) scale(1.2); }
+    }
+    
+    #quiz-panel {
+        background: var(--ui-panel-bg);
+        backdrop-filter: blur(10px);
+        border-top: 2px solid var(--accent-color);
+        padding: 20px;
+        text-align: center;
+    }
+    #question-text {
+        font-family: 'Orbitron', sans-serif;
+        font-size: 1.5em;
+        margin: 0 0 20px 0;
+        min-height: 50px;
+    }
+    #answer-buttons {
+        display: flex;
+        justify-content: center;
+        gap: 15px;
+        flex-wrap: wrap;
+    }
+    .btn {
+        background-color: #2b3a67;
+        border: 2px solid #5b6a9e;
+        color: var(--text-color);
+        padding: 12px 25px;
+        border-radius: 8px;
+        font-size: 1em;
+        font-weight: 700;
+        cursor: pointer;
+        min-width: 200px;
+        transition: all 0.2s ease;
+    }
+    .btn:hover:not(:disabled) {
+        background-color: #5b6a9e;
+        transform: translateY(-2px);
+    }
+    .btn:disabled { cursor: not-allowed; }
+    .btn.correct { background-color: var(--correct-color); border-color: #388e3c; }
+    .btn.incorrect { background-color: var(--incorrect-color); border-color: #d32f2f; }
+    
+    .modal {
+        position: fixed;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        background-color: rgba(0,0,0,0.7);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 100;
+        text-align: center;
+        padding: 15px;
+    }
+    .modal-content {
+        background: var(--ui-panel-bg);
+        backdrop-filter: blur(10px);
+        padding: 30px 40px;
+        border-radius: 15px;
+        border: 2px solid var(--accent-color);
+        width: 100%;
+        max-width: 500px;
+    }
+    .modal-content h2 {
+        font-family: 'Orbitron', sans-serif;
+        font-size: 2.5em;
+        margin-top: 0;
+    }
+    .modal-content p { font-size: 1.2em; }
+    .modal-btn {
+        background-color: var(--accent-color);
+        color: var(--space-bg);
+        padding: 15px 30px;
+        border: none;
+        border-radius: 8px;
+        font-size: 1.2em;
+        font-weight: 700;
+        cursor: pointer;
+        margin: 10px;
     }
 
-    #box {
-      position: absolute;
-      bottom: 10px;
-      left: 50px;
-      width: 100px;
-      height: 100px;
-      border-radius: 10px;
-      box-shadow: 0 0 15px rgba(0,0,0,0.5);
-      transition: left 0.1s;
-      background-size: cover;
-      background-position: center;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: bold;
-      color: white;
-      font-size: 18px;
-      text-shadow: 0 0 5px #000;
-      z-index: 2;
+    /* --- NEW: Mobile Optimizations --- */
+    @media (max-width: 600px) {
+        .back-btn {
+            width: 45px;
+            height: 45px;
+            font-size: 1.5rem;
+            top: 15px;
+            left: 15px;
+        }
+
+        #race-track {
+            height: 250px; /* Reduce track height */
+        }
+
+        .planet { font-size: 60px; } /* Slightly smaller planets */
+        .rocket { font-size: 40px; } /* Slightly smaller rockets */
+
+        #question-text {
+            font-size: 1.2em; /* Smaller question text */
+            min-height: 40px;
+        }
+        
+        #answer-buttons {
+            gap: 10px; /* Tighter gap between buttons */
+        }
+        
+        .btn {
+            padding: 10px; /* Reduce padding */
+            font-size: 0.9em;
+            min-width: 150px; /* Allow buttons to be smaller */
+            width: 45%; /* Make buttons take up ~half the width */
+        }
+
+        .modal-content h2 { font-size: 1.8em; }
+        .modal-content p { font-size: 1em; }
+        .modal-btn {
+            font-size: 1em;
+            padding: 12px 20px;
+            display: block; /* Stack buttons vertically */
+            width: 100%;
+        }
     }
 
-    .wood { background: linear-gradient(45deg, #a0522d, #d2b48c); }
-    .stone { background: linear-gradient(45deg, #7f8c8d, #95a5a6); }
-    .steel { background: linear-gradient(45deg, #000000, #434343); color: #fff; }
-
-    .direction-arrow {
-      position: absolute;
-      top: 40px;
-      width: 0;
-      height: 0;
-      border-top: 15px solid transparent;
-      border-bottom: 15px solid transparent;
-      z-index: 1;
-      opacity: 0;
-      transition: opacity 0.3s;
-    }
-
-    .arrow-right {
-      border-left: 25px solid #2ecc71;
-      left: 180px;
-    }
-
-    .arrow-left {
-      border-right: 25px solid #e74c3c;
-      left: 470px;
-    }
-
-    #info {
-      margin-top: 15px;
-      font-size: 18px;
-      line-height: 1.5;
-      min-height: 60px;
-      text-align: center;
-    }
-
-    button {
-      background: #1abc9c;
-      border: none;
-      padding: 12px 20px;
-      margin: 10px 5px 0 5px;
-      border-radius: 6px;
-      color: white;
-      font-weight: 600;
-      font-size: 16px;
-      cursor: pointer;
-      transition: background 0.3s;
-      user-select: none;
-    }
-
-    button:hover { background: #16a085; }
-
-    label, select, input {
-      margin-top: 10px;
-      font-weight: 600;
-      font-size: 16px;
-    }
-
-    select, input[type=range] {
-      margin-left: 10px;
-      padding: 5px;
-      border-radius: 6px;
-      border: none;
-      font-weight: 500;
-    }
-
-    .controls-row {
-      display: flex;
-      align-items: center;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 20px;
-      margin-top: 10px;
-    }
-  </style>
+</style>
 </head>
 <body>
 
-  <button id="backBtn" onclick="window.history.back()">Back</button>
+<a href="subjects.html" class="back-btn" aria-label="Go back">&#8592;</a>
 
-  <div id="container">
-    <h1>Force & Motion Simulator</h1>
-    <div id="box-container">
-      <div id="box" class="wood">1 kg</div>
-      <div class="direction-arrow arrow-left"></div>
-      <div class="direction-arrow arrow-right"></div>
+<!-- The rest of your HTML remains exactly the same -->
+<div id="stars"></div>
+<div id="game-container">
+    <div id="race-track">
+        <div id="earth" class="planet">🌍</div>
+        <div id="player-rocket" class="rocket">
+            <span class="flame">🔥</span>
+            <span>🚀</span>
+        </div>
+        <div id="ai-rocket" class="rocket">
+             <span class="flame">🔥</span>
+            <span>🛸</span>
+        </div>
+        <div id="mars" class="planet">🪐</div>
     </div>
 
-    <div class="controls-row">
-      <label for="massSelect">Select Mass:</label>
-      <select id="massSelect">
-        <option value="1">1 kg (Wood)</option>
-        <option value="3">3 kg (Stone)</option>
-        <option value="5">5 kg (Steel)</option>
-      </select>
-
-      <label for="forceInput">Force (N):</label>
-      <input type="range" id="forceInput" min="-20" max="20" value="0" step="1" />
-      <span id="forceValue">0 N</span>
+    <div id="quiz-panel">
+        <h2 id="question-text">Loading question...</h2>
+        <div id="answer-buttons">
+            <button class="btn"></button>
+            <button class="btn"></button>
+            <button class="btn"></button>
+        </div>
     </div>
-
-    <div class="controls-row">
-      <button id="applyForceBtn">Apply Force</button>
-      <button id="stopBtn">Stop</button>
-      <button id="resetBtn">Reset</button>
+</div>
+<div id="start-modal" class="modal">
+    <div class="modal-content">
+        <h2>🚀 Rocket Race! 🚀</h2>
+        <p>Choose your rocket to begin the race to Mars.</p>
+        <p>Answer questions about Force and Motion to power your thrusters!</p>
+        <div>
+            <button class="modal-btn" id="select-light-rocket">Light Rocket<br><small>(High Acceleration, Low Mass)</small></button>
+            <button class="modal-btn" id="select-heavy-rocket">Heavy Rocket<br><small>(Low Acceleration, High Mass)</small></button>
+        </div>
     </div>
-
-    <div id="info">
-      Velocity: 0 m/s<br/>
-      Acceleration: 0 m/s²<br/>
-      Position: 0 m
+</div>
+<div id="end-modal" class="modal" style="display: none;">
+    <div class="modal-content">
+        <h2 id="end-message">You reached Mars!</h2>
+        <button class="modal-btn" id="play-again-btn">Play Again</button>
     </div>
-  </div>
+</div>
 
-  <script>
-    const box = document.getElementById('box');
-    const massSelect = document.getElementById('massSelect');
-    const forceInput = document.getElementById('forceInput');
-    const forceValue = document.getElementById('forceValue');
-    const applyForceBtn = document.getElementById('applyForceBtn');
-    const stopBtn = document.getElementById('stopBtn');
-    const resetBtn = document.getElementById('resetBtn');
-    const info = document.getElementById('info');
-    const arrowRight = document.querySelector('.arrow-right');
-    const arrowLeft = document.querySelector('.arrow-left');
-    const boxContainer = document.getElementById('box-container');
-
-    let mass = 1;
-    let force = 0;
-    let acceleration = 0;
-    let velocity = 0;
-    let position = 0;
-    let animationRunning = false;
-    let lastTime = null;
-
-    function setBlockAppearance() {
-      box.className = '';
-      if(mass === 1){ box.classList.add('wood'); box.textContent = '1 kg'; }
-      else if(mass === 3){ box.classList.add('stone'); box.textContent = '3 kg'; }
-      else if(mass === 5){ box.classList.add('steel'); box.textContent = '5 kg'; }
+<!-- JavaScript remains exactly the same -->
+<script>
+const questions = [
+    { q: "What is a push or a pull?", options: ["Motion", "Force", "Inertia"], answer: 1 },
+    { q: "Which law states 'an object in motion stays in motion'?", options: ["Newton's 1st Law", "Newton's 2nd Law", "Newton's 3rd Law"], answer: 0 },
+    { q: "A rocket moves forward by pushing gas backward. This is an example of...", options: ["Gravity", "Newton's 3rd Law", "Friction"], answer: 1 },
+    { q: "What force opposes motion between two surfaces in contact?", options: ["Thrust", "Gravity", "Friction"], answer: 2 },
+    { q: "If you apply the same force to a heavy and a light ball, which one will accelerate more?", options: ["The heavy ball", "The light ball", "They accelerate the same"], answer: 1 },
+    { q: "The tendency of an object to resist a change in its motion is called...", options: ["Inertia", "Acceleration", "Velocity"], answer: 0 },
+    { q: "What do unbalanced forces cause?", options: ["No change in motion", "A change in motion", "An object to get lighter"], answer: 1 },
+    { q: "What is the force that pulls objects towards the center of the Earth?", options: ["Magnetism", "Friction", "Gravity"], answer: 2 }
+];
+const playerRocket = document.getElementById('player-rocket');
+const aiRocket = document.getElementById('ai-rocket');
+const questionText = document.getElementById('question-text');
+const answerButtons = document.querySelectorAll('#answer-buttons .btn');
+const startModal = document.getElementById('start-modal');
+const endModal = document.getElementById('end-modal');
+const endMessage = document.getElementById('end-message');
+let playerPos = 10;
+let aiPos = 10;
+const WIN_POS = 85;
+let currentQuestionIndex;
+let availableQuestions = [];
+let playerThrust = 0;
+function startGame(thrustValue) {
+    playerThrust = thrustValue;
+    playerPos = 10;
+    aiPos = 10;
+    playerRocket.style.left = `${playerPos}%`;
+    aiRocket.style.left = `${aiPos}%`;
+    availableQuestions = [...questions];
+    startModal.style.display = 'none';
+    endModal.style.display = 'none';
+    displayNewQuestion();
+}
+function displayNewQuestion() {
+    playerRocket.classList.remove('thrust');
+    aiRocket.classList.remove('thrust');
+    if (availableQuestions.length === 0) {
+        availableQuestions = [...questions];
     }
-
-    function updateArrows() {
-      if(force > 0) { arrowRight.style.opacity = 1; arrowLeft.style.opacity = 0; }
-      else if(force < 0){ arrowRight.style.opacity = 0; arrowLeft.style.opacity = 1; }
-      else{ arrowRight.style.opacity = 0; arrowLeft.style.opacity = 0; }
-    }
-
-    massSelect.addEventListener('change', () => {
-      mass = parseFloat(massSelect.value);
-      setBlockAppearance();
-      resetSimulation();
+    currentQuestionIndex = Math.floor(Math.random() * availableQuestions.length);
+    const question = availableQuestions.splice(currentQuestionIndex, 1)[0];
+    questionText.textContent = question.q;
+    answerButtons.forEach((btn, index) => {
+        btn.textContent = question.options[index];
+        btn.className = 'btn';
+        btn.disabled = false;
+        btn.onclick = () => selectAnswer(index, question.answer);
     });
-
-    forceInput.addEventListener('input', () => {
-      force = parseFloat(forceInput.value);
-      forceValue.textContent = `${force} N`;
-    });
-
-    applyForceBtn.addEventListener('click', () => {
-      if(force === 0) return alert('Please select a force other than zero.');
-      acceleration = force / mass;
-      velocity += acceleration * 0.05;
-      if(!animationRunning){ animationRunning = true; lastTime=null; requestAnimationFrame(animate); }
-      updateArrows();
-    });
-
-    stopBtn.addEventListener('click', () => { acceleration=0; velocity=0; updateArrows(); });
-    resetBtn.addEventListener('click', resetSimulation);
-
-    function animate(timestamp){
-      if(!lastTime) lastTime = timestamp;
-      const deltaTime = (timestamp - lastTime)/1000;
-      lastTime = timestamp;
-
-      velocity += acceleration * deltaTime;
-      position += velocity * deltaTime;
-
-      const maxPos = boxContainer.clientWidth - box.clientWidth - 10;
-      if(position < 0){ position=0; velocity=0; }
-      if(position > maxPos/5){ position=maxPos/5; velocity=0; }
-
-      box.style.left = (50 + position*5) + 'px';
-
-      info.innerHTML = `
-        Velocity: ${velocity.toFixed(2)} m/s<br/>
-        Acceleration: ${acceleration.toFixed(2)} m/s²<br/>
-        Position: ${position.toFixed(2)} m
-      `;
-
-      if(animationRunning) requestAnimationFrame(animate);
+}
+function selectAnswer(selectedIndex, correctIndex) {
+    answerButtons.forEach(btn => btn.disabled = true);
+    if (selectedIndex === correctIndex) {
+        answerButtons[selectedIndex].classList.add('correct');
+        playerPos += playerThrust;
+        playerRocket.classList.add('thrust');
+    } else {
+        answerButtons[selectedIndex].classList.add('incorrect');
+        answerButtons[correctIndex].classList.add('correct');
     }
-
-    function resetSimulation(){
-      animationRunning=false; acceleration=0; velocity=0; position=0;
-      forceInput.value=0; force=0; forceValue.textContent="0 N";
-      box.style.left='50px';
-      updateArrows();
-      info.innerHTML=`Velocity: 0 m/s<br/>Acceleration: 0 m/s²<br/>Position: 0 m`;
+    playerRocket.style.left = `${playerPos}%`;
+    setTimeout(() => {
+        aiPos += Math.random() * 5 + 3;
+        aiRocket.style.left = `${aiPos}%`;
+        aiRocket.classList.add('thrust');
+        checkWin();
+    }, 500);
+}
+function checkWin() {
+    if (playerPos >= WIN_POS || aiPos >= WIN_POS) {
+        if (playerPos >= WIN_POS) {
+            endMessage.textContent = "🎉 You Reached Mars! 🎉";
+        } else {
+            endMessage.textContent = "Mission Failed! The AI won.";
+        }
+        endModal.style.display = 'flex';
+    } else {
+        setTimeout(displayNewQuestion, 1500);
     }
-
-    setBlockAppearance();
-    resetSimulation();
-  </script>
+}
+document.getElementById('select-light-rocket').onclick = () => startGame(10);
+document.getElementById('select-heavy-rocket').onclick = () => startGame(7);
+document.getElementById('play-again-btn').onclick = () => {
+    endModal.style.display = 'none';
+    startModal.style.display = 'flex';
+};
+</script>
 </body>
-</html> 
+</html>

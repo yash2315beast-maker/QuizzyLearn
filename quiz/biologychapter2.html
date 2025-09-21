@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cell Explorer</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+    :root {
+        --bg-color: #e8f7f0;
+        --cell-color-animal: #ffcdd2;
+        --cell-color-plant: #c8e6c9;
+        --text-color: #263238;
+        --primary-color: #00796b;
+        --hotspot-color: #ffab40;
+    }
+
+    body {
+        font-family: 'Poppins', sans-serif;
+        background-color: var(--bg-color);
+        color: var(--text-color);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        margin: 0;
+        overflow: hidden;
+    }
+
+    /* --- Back Button --- */
+    .back-btn {
+        position: fixed;
+        top: 20px;
+        left: 20px;
+        z-index: 101;
+        background: white;
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        border: 2px solid var(--primary-color);
+        color: var(--primary-color);
+        font-size: 1.8rem;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        transition: all 0.3s ease;
+    }
+    .back-btn:hover {
+        background: var(--primary-color);
+        color: white;
+        transform: scale(1.1);
+    }
+
+
+    #game-container {
+        display: flex;
+        align-items: center;
+        gap: 30px;
+        width: 95%;
+        max-width: 1000px;
+    }
+
+    /* --- Cell Diagram Area --- */
+    #cell-diagram-area {
+        position: relative;
+        width: 500px;
+        height: 500px;
+    }
+
+    #cell-background {
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        position: absolute;
+        transition: background-color 0.5s ease, border-radius 0.5s ease;
+    }
+    .animal-cell-bg {
+        background-color: var(--cell-color-animal);
+        border: 10px solid #ef9a9a;
+    }
+    .plant-cell-bg {
+        background-color: var(--cell-color-plant);
+        border: 10px solid #a5d6a7;
+        border-radius: 10%; /* Plant cells are more rectangular */
+    }
+
+    .organelle-hotspot {
+        position: absolute;
+        background-color: var(--hotspot-color);
+        border: 3px solid white;
+        border-radius: 50%;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 0 15px rgba(0,0,0,0.3);
+        filter: grayscale(1);
+        opacity: 0.8;
+    }
+    .organelle-hotspot:hover {
+        transform: scale(1.2);
+        opacity: 1;
+    }
+    .organelle-hotspot.activated {
+        filter: grayscale(0);
+        opacity: 1;
+        animation: pop 0.5s ease;
+        pointer-events: none; /* Can't click again */
+        box-shadow: 0 0 20px var(--hotspot-color);
+    }
+    @keyframes pop {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.4); }
+        100% { transform: scale(1); }
+    }
+
+
+    /* --- UI Panel --- */
+    #ui-panel {
+        width: 400px;
+        background-color: white;
+        padding: 25px;
+        border-radius: 15px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+    }
+    
+    #ui-panel h1 {
+        margin-top: 0;
+        color: var(--primary-color);
+        text-align: center;
+    }
+
+    #cell-switcher {
+        display: flex;
+        justify-content: center;
+        margin-bottom: 20px;
+    }
+    .switch-btn {
+        padding: 10px 20px;
+        border: 2px solid var(--primary-color);
+        background: none;
+        color: var(--primary-color);
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    #animal-btn { border-radius: 15px 0 0 15px; }
+    #plant-btn { border-radius: 0 15px 15px 0; }
+    .switch-btn.active {
+        background: var(--primary-color);
+        color: white;
+    }
+    
+    #progress-tracker {
+        text-align: center;
+        font-size: 1.1em;
+        font-weight: 600;
+        margin-bottom: 15px;
+    }
+
+    #info-box {
+        background-color: #f5f5f5;
+        padding: 15px;
+        border-radius: 8px;
+        min-height: 80px;
+        text-align: center;
+    }
+
+    /* --- Quiz Modal --- */
+    .modal {
+        position: fixed;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        background: rgba(0,0,0,0.6);
+        display: none; /* Hidden by default */
+        justify-content: center;
+        align-items: center;
+        z-index: 100;
+    }
+    .modal-content {
+        background: white;
+        padding: 30px;
+        border-radius: 15px;
+        width: 90%;
+        max-width: 500px;
+        text-align: center;
+    }
+    #quiz-question {
+        font-size: 1.3em;
+        font-weight: 600;
+        margin-bottom: 20px;
+    }
+    #quiz-options {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+    .option-btn {
+        padding: 12px;
+        border: 2px solid #ccc;
+        background: none;
+        border-radius: 8px;
+        font-size: 1em;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    .option-btn:hover:not(:disabled) {
+        background: #e0e0e0;
+    }
+    .option-btn.correct { background: #a5d6a7; border-color: #4caf50; }
+    .option-btn.incorrect { background: #ef9a9a; border-color: #f44336; }
+    
+    #feedback-text { font-weight: 600; margin-top: 15px; min-height: 25px; }
+    #next-btn {
+        margin-top: 15px;
+        padding: 10px 30px;
+        background: var(--primary-color);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-size: 1em;
+        cursor: pointer;
+        display: none;
+    }
+    
+    /* Responsive Design */
+    @media (max-width: 900px) {
+        body { height: auto; padding: 20px 0; }
+        #game-container { flex-direction: column; margin-top: 60px; }
+        .back-btn { top: 15px; left: 15px; width: 45px; height: 45px; font-size: 1.5rem; }
+        #cell-diagram-area { width: 90vw; height: 90vw; max-width: 400px; max-height: 400px; }
+        #ui-panel { width: 90vw; max-width: 400px; }
+    }
+</style>
+</head>
+<body>
+
+<!-- FIXED Back Button -->
+<a href="bio-quiz.html" class="back-btn" aria-label="Go back to chapters">&#8592;</a>
+
+<div id="game-container">
+    <div id="cell-diagram-area">
+        <div id="cell-background"></div>
+        <!-- Organelle hotspots will be generated here by JS -->
+    </div>
+    <div id="ui-panel">
+        <h1>Cell Explorer</h1>
+        <div id="cell-switcher">
+            <button class="switch-btn active" id="animal-btn">Animal Cell</button>
+            <button class="switch-btn" id="plant-btn">Plant Cell</button>
+        </div>
+        <div id="progress-tracker">Organelles Found: 0 / 5</div>
+        <div id="info-box">
+            <p>Click on a part of the cell to identify it!</p>
+        </div>
+    </div>
+</div>
+
+<!-- Quiz Modal -->
+<div id="quiz-modal" class="modal">
+    <div class="modal-content">
+        <h2 id="quiz-question">Question?</h2>
+        <div id="quiz-options">
+            <button class="option-btn"></button>
+            <button class="option-btn"></button>
+            <button class="option-btn"></button>
+        </div>
+        <p id="feedback-text"></p>
+        <button id="next-btn">Continue Exploring</button>
+    </div>
+</div>
+
+<script>
+const cellData = {
+    animal: [
+        { id: 'nucleus', name: 'Nucleus', q: 'I am the "brain" or control center of the cell. What am I?', options: ['Mitochondria', 'Nucleus', 'Vacuole'], answer: 1, pos: { top: '40%', left: '40%'}, size: 80 },
+        { id: 'mitochondria', name: 'Mitochondria', q: 'I am the "powerhouse" of the cell, providing energy. What am I?', options: ['Mitochondria', 'Cytoplasm', 'Cell Membrane'], answer: 0, pos: { top: '65%', left: '25%'}, size: 50 },
+        { id: 'membrane', name: 'Cell Membrane', q: 'I am the "gatekeeper," controlling what enters and leaves the cell. What am I?', options: ['Cell Wall', 'Nucleus', 'Cell Membrane'], answer: 2, pos: { top: '15%', left: '15%'}, size: 40 },
+        { id: 'cytoplasm', name: 'Cytoplasm', q: 'I am the jelly-like substance that fills the cell and holds organelles. What am I?', options: ['Cytoplasm', 'Vacuole', 'Chloroplast'], answer: 0, pos: { top: '20%', left: '60%'}, size: 45 },
+        { id: 'vacuole_small', name: 'Vacuole', q: 'I am a small "storage bubble" for water, food, and waste. What am I?', options: ['Mitochondria', 'Vacuole', 'Nucleus'], answer: 1, pos: { top: '60%', left: '65%'}, size: 35 },
+    ],
+    plant: [
+        { id: 'wall', name: 'Cell Wall', q: 'I am the tough, rigid outer layer that protects and supports a plant cell. What am I?', options: ['Cell Wall', 'Cell Membrane', 'Cytoplasm'], answer: 0, pos: { top: '10%', left: '10%'}, size: 40 },
+        { id: 'membrane', name: 'Cell Membrane', q: 'I am found just inside the cell wall, controlling what passes through. What am I?', options: ['Cell Wall', 'Nucleus', 'Cell Membrane'], answer: 2, pos: { top: '50%', left: '80%'}, size: 40 },
+        { id: 'chloroplast', name: 'Chloroplast', q: 'I am the "food factory" that uses sunlight to make food (photosynthesis). What am I?', options: ['Mitochondria', 'Chloroplast', 'Vacuole'], answer: 1, pos: { top: '15%', left: '60%'}, size: 55 },
+        { id: 'vacuole_large', name: 'Large Central Vacuole', q: 'I am a very large "storage tank" that holds water and keeps the cell firm. What am I?', options: ['Nucleus', 'Large Vacuole', 'Mitochondria'], answer: 1, pos: { top: '40%', left: '40%'}, size: 150 },
+        { id: 'nucleus', name: 'Nucleus', q: 'I am the "brain" of the cell, pushed to the side by the large vacuole. What am I?', options: ['Mitochondria', 'Nucleus', 'Cytoplasm'], answer: 1, pos: { top: '15%', left: '15%'}, size: 70 },
+        { id: 'cytoplasm', name: 'Cytoplasm', q: 'I am the jelly-like substance filling the cell. What am I?', options: ['Cytoplasm', 'Vacuole', 'Cell Wall'], answer: 0, pos: { top: '75%', left: '15%'}, size: 45 },
+        { id: 'mitochondria', name: 'Mitochondria', q: 'I am the "powerhouse" that provides energy for the cell. What am I?', options: ['Mitochondria', 'Chloroplast', 'Ribosome'], answer: 0, pos: { top: '65%', left: '70%'}, size: 50 },
+    ]
+};
+
+const cellDiagramArea = document.getElementById('cell-diagram-area');
+const cellBackground = document.getElementById('cell-background');
+const animalBtn = document.getElementById('animal-btn');
+const plantBtn = document.getElementById('plant-btn');
+const progressTracker = document.getElementById('progress-tracker');
+const infoBox = document.getElementById('info-box');
+const quizModal = document.getElementById('quiz-modal');
+const quizQuestion = document.getElementById('quiz-question');
+const quizOptions = document.getElementById('quiz-options');
+const optionBtns = document.querySelectorAll('.option-btn');
+const feedbackText = document.getElementById('feedback-text');
+const nextBtn = document.getElementById('next-btn');
+let currentCellType = 'animal';
+let currentOrganelle = null;
+
+function initGame() {
+    switchCellType('animal');
+}
+function switchCellType(type) {
+    currentCellType = type;
+    animalBtn.classList.toggle('active', type === 'animal');
+    plantBtn.classList.toggle('active', type === 'plant');
+    cellBackground.className = '';
+    cellBackground.classList.add(type === 'animal' ? 'animal-cell-bg' : 'plant-cell-bg');
+    cellData[type].forEach(org => org.activated = false);
+    renderCell();
+}
+function renderCell() {
+    cellDiagramArea.innerHTML = '';
+    cellDiagramArea.appendChild(cellBackground);
+    const organelles = cellData[currentCellType];
+    organelles.forEach(organelle => {
+        const hotspot = document.createElement('div');
+        hotspot.className = 'organelle-hotspot';
+        if (organelle.activated) {
+            hotspot.classList.add('activated');
+        }
+        hotspot.style.top = organelle.pos.top;
+        hotspot.style.left = organelle.pos.left;
+        hotspot.style.width = `${organelle.size}px`;
+        hotspot.style.height = `${organelle.size}px`;
+        hotspot.addEventListener('click', () => {
+            if (!organelle.activated) {
+                handleOrganelleClick(organelle);
+            }
+        });
+        cellDiagramArea.appendChild(hotspot);
+    });
+    updateProgress();
+}
+function handleOrganelleClick(organelle) {
+    currentOrganelle = organelle;
+    quizQuestion.textContent = organelle.q;
+    optionBtns.forEach((btn, index) => {
+        btn.textContent = organelle.options[index];
+        btn.className = 'option-btn';
+        btn.disabled = false;
+    });
+    feedbackText.textContent = '';
+    nextBtn.style.display = 'none';
+    quizModal.style.display = 'flex';
+}
+function checkAnswer(selectedIndex) {
+    const isCorrect = selectedIndex === currentOrganelle.answer;
+    optionBtns.forEach(btn => btn.disabled = true);
+    if (isCorrect) {
+        optionBtns[selectedIndex].classList.add('correct');
+        feedbackText.textContent = "Correct! You've identified the " + currentOrganelle.name + "!";
+        currentOrganelle.activated = true;
+    } else {
+        optionBtns[selectedIndex].classList.add('incorrect');
+        optionBtns[currentOrganelle.answer].classList.add('correct');
+        feedbackText.textContent = "Not quite. The correct answer is highlighted.";
+    }
+    nextBtn.style.display = 'block';
+}
+function updateProgress() {
+    const organelles = cellData[currentCellType];
+    const activatedCount = organelles.filter(org => org.activated).length;
+    progressTracker.textContent = `Organelles Found: ${activatedCount} / ${organelles.length}`;
+    if (activatedCount === organelles.length) {
+        infoBox.innerHTML = `<h3>Congratulations!</h3><p>You've identified all parts of the ${currentCellType} cell!</p>`;
+    } else {
+        infoBox.innerHTML = '<p>Click on a part of the cell to identify it!</p>';
+    }
+}
+animalBtn.addEventListener('click', () => switchCellType('animal'));
+plantBtn.addEventListener('click', () => switchCellType('plant'));
+optionBtns.forEach((btn, index) => {
+    btn.addEventListener('click', () => checkAnswer(index));
+});
+nextBtn.addEventListener('click', () => {
+    quizModal.style.display = 'none';
+    renderCell();
+});
+initGame();
+</script>
+</body>
+</html>
