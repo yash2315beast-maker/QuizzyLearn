@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CS Quiz Game</title>
+<style>
+  body { font-family:'Poppins', sans-serif; background:#f0f8ff; margin:0; padding:0; display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:100vh; }
+
+  /* Back button fixed at top-left */
+  #backBtn { 
+    position: fixed; 
+    top: 0; 
+    left: 0; 
+    margin: 10px; 
+    padding: 10px 20px; 
+    font-size: 1rem; 
+    border:none; 
+    border-radius:8px; 
+    background:#f95738; 
+    color:white; 
+    cursor:pointer; 
+    z-index:1000; 
+    transition:0.3s; 
+  }
+  #backBtn:hover { background:#0d3b66; }
+
+  .container { background:#fff; padding:30px 50px; border-radius:15px; box-shadow:0 10px 25px rgba(0,0,0,0.2); text-align:center; max-width:500px; width:90%; position:relative; }
+  h1 { color:#0d3b66; }
+
+  /* Option buttons */
+  button.optionBtn { background:#0d3b66; color:white; border:none; padding:12px 25px; margin:10px 0; border-radius:10px; cursor:pointer; font-size:1rem; width:100%; transition:0.3s; }
+  button.optionBtn:hover { background:#f95738; }
+
+  /* Container for Next and Restart buttons */
+  .action-buttons { display:flex; gap:15px; margin-top:20px; justify-content:center; }
+
+  /* Next button small & new color */
+  #nextBtn { background:#28a745; color:white; padding:8px 20px; border-radius:8px; cursor:pointer; font-size:0.9rem; transition:0.3s; }
+  #nextBtn:hover { background:#218838; }
+
+  /* Restart button beside Next */
+  #restartBtn { background:#ffc107; color:#222; padding:8px 20px; border-radius:8px; cursor:pointer; font-size:0.9rem; transition:0.3s; display:none; }
+  #restartBtn:hover { background:#e0a800; }
+
+  /* Result section */
+  #result { display:none; margin-top:20px; text-align:center; }
+</style>
+</head>
+<body>
+
+<!-- Back button fixed at top-left -->
+<button id="backBtn" onclick="goBack()">Back</button>
+
+<div class="container">
+  <h1>Computer Science Quiz</h1>
+  
+  <div id="quiz">
+    <p id="question"></p>
+    <button id="option0" class="optionBtn" onclick="selectAnswer(0)"></button>
+    <button id="option1" class="optionBtn" onclick="selectAnswer(1)"></button>
+    <button id="option2" class="optionBtn" onclick="selectAnswer(2)"></button>
+  </div>
+</div>
+
+<!-- Next and Restart buttons outside quiz container -->
+<div class="action-buttons">
+  <button id="nextBtn" onclick="nextQuestion()">Next</button>
+  <button id="restartBtn" onclick="restartQuiz()">Restart</button>
+</div>
+
+<!-- Result section -->
+<div id="result">
+  <h2>Your Score: <span id="score"></span>/15</h2>
+  <p id="reward"></p>
+</div>
+
+<script>
+const questions = [
+  { question: "What does CPU stand for?", options:["Central Processing Unit","Computer Personal Unit","Central Print Unit"], answer:0 },
+  { question: "Which device is used to point and click on a computer screen?", options:["Keyboard","Mouse","Monitor"], answer:1 },
+  { question: "Which one is an example of an output device?", options:["Printer","Microphone","Scanner"], answer:0 },
+  { question: "What is software?", options:["Physical parts of a computer","Programs and instructions that run on a computer","Internet connection"], answer:1 },
+  { question: "Which language is commonly used to create web pages?", options:["Python","HTML","Java"], answer:1 },
+  { question: "Which part stores data permanently?", options:["RAM","Hard Drive","CPU"], answer:1 },
+  { question: "Which is an input device?", options:["Monitor","Keyboard","Printer"], answer:1 },
+  { question: "Which is NOT a programming language?", options:["Java","Python","HTML"], answer:2 },
+  { question: "What does RAM stand for?", options:["Random Access Memory","Read Access Memory","Rapid Application Memory"], answer:0 },
+  { question: "Which device displays visuals on screen?", options:["Printer","Monitor","Keyboard"], answer:1 },
+  { question: "Which symbol is used for AND in Boolean logic?", options:["&","|","!"], answer:0 },
+  { question: "Which symbol is used for OR in Boolean logic?", options:["&","|","!"], answer:1 },
+  { question: "Which of these is a storage device?", options:["Keyboard","SSD","Mouse"], answer:1 },
+  { question: "Which software runs the computer?", options:["Operating System","Word Processor","Spreadsheet"], answer:0 },
+  { question: "Which tag is used for headings in HTML?", options:["<head>","<h1>","<p>"], answer:1 }
+];
+
+let currentQuestion = 0;
+let userAnswers = Array(questions.length).fill(null);
+
+function loadQuestion(){
+  document.getElementById('question').innerText = questions[currentQuestion].question;
+  for(let i=0;i<3;i++){
+    const btn = document.getElementById('option'+i);
+    btn.innerText = questions[currentQuestion].options[i];
+    btn.style.background = userAnswers[currentQuestion]===i?"#f95738":"#0d3b66"; // highlight selected
+  }
+}
+
+function selectAnswer(selected){
+  userAnswers[currentQuestion] = selected;
+  loadQuestion();
+}
+
+function nextQuestion(){
+  if(currentQuestion < questions.length - 1){
+    currentQuestion++;
+    loadQuestion();
+  } else {
+    calculateScore();
+  }
+}
+
+function goBack(){
+  window.history.back();
+}
+
+function calculateScore(){
+  let score = 0;
+  for(let i=0;i<questions.length;i++){
+    if(userAnswers[i] === questions[i].answer) score++;
+  }
+  document.getElementById('quiz').style.display='none';
+  document.getElementById('nextBtn').style.display='none';
+  document.getElementById('restartBtn').style.display='inline-block';
+  document.getElementById('result').style.display='block';
+  document.getElementById('score').innerText = score;
+  let rewardText = "";
+  if(score === 15) rewardText = "🏆 Excellent! You earned a Gold Badge!";
+  else if(score >= 10) rewardText = "🥈 Good Job! You earned a Silver Badge!";
+  else rewardText = "👍 Keep Practicing! You earned a Bronze Badge!";
+  document.getElementById('reward').innerText = rewardText;
+}
+  
+function restartQuiz(){
+  currentQuestion = 0;
+  userAnswers = Array(questions.length).fill(null);
+  document.getElementById('result').style.display='none';
+  document.getElementById('quiz').style.display='block';
+  document.getElementById('nextBtn').style.display='inline-block';
+  document.getElementById('restartBtn').style.display='none';
+  loadQuestion();
+}
+
+// Initialize
+loadQuestion();
+</script>
+
+</body>
+</html>

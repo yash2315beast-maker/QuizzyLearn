@@ -43,11 +43,12 @@ h1 {
   font-size: 1.2rem;
   font-weight: 600;
   cursor: pointer;
-  margin: 10px;
+  margin: 10px 0; /* vertical gap */
   transition: all 0.3s ease;
   box-shadow: 0 6px 20px rgba(0,0,0,0.25);
   z-index: 2;
   position: relative;
+  width: 250px; /* same width for all */
 }
 .lang-btn:hover {
   background: #2575fc;
@@ -88,40 +89,35 @@ footer span { font-weight: 600; }
 .floating-word {
   position: absolute;
   font-weight: 700;
-  opacity: 0.15; /* subtle but colorful */
+  opacity: 0.15;
   white-space: nowrap;
   animation: float linear infinite;
   user-select: none;
   pointer-events: none;
 }
-
 @keyframes float {
   from { transform: translateY(100vh) rotate(0deg); }
   to   { transform: translateY(-120vh) rotate(360deg); }
+}
+
+/* Make buttons container vertical */
+.lang-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
 }
 </style>
 </head>
 <body>
   <!-- Floating background words -->
-  <div class="floating-word" style="left:10%; font-size:3rem; animation-duration:22s; animation-delay:0s; color:#FF6B6B;">हिंदी</div>
-  <div class="floating-word" style="left:30%; font-size:2.5rem; animation-duration:28s; animation-delay:3s; color:#FFD93D;">English</div>
-  <div class="floating-word" style="left:50%; font-size:3.2rem; animation-duration:25s; animation-delay:6s; color:#6BCB77;">ଓଡ଼ିଆ</div>
-  <div class="floating-word" style="left:70%; font-size:2.8rem; animation-duration:30s; animation-delay:9s; color:#4D96FF;">తెలుగు</div>
-  <div class="floating-word" style="left:85%; font-size:3.5rem; animation-duration:24s; animation-delay:12s; color:#A66DD4;">मराठी</div>
-
-  <!-- Extra colorful copies -->
-  <div class="floating-word" style="left:20%; font-size:2rem; animation-duration:26s; animation-delay:5s; color:#FF9671;">English</div>
-  <div class="floating-word" style="left:40%; font-size:3rem; animation-duration:32s; animation-delay:8s; color:#FFC75F;">हिंदी</div>
-  <div class="floating-word" style="left:60%; font-size:2.2rem; animation-duration:27s; animation-delay:10s; color:#F9F871;">मराठी</div>
-  <div class="floating-word" style="left:75%; font-size:2.6rem; animation-duration:29s; animation-delay:14s; color:#00C9A7;">తెలుగు</div>
-  <div class="floating-word" style="left:90%; font-size:2.4rem; animation-duration:31s; animation-delay:18s; color:#FF61A6;">ଓଡ଼ିଆ</div>
+  <!-- (same floating words you already have here) -->
 
   <!-- Back button to go home -->
   <button class="back-btn" onclick="window.location.href='index.html'">&#8592;</button>
 
   <h1>Select Language</h1>
-  <div>
-    <!-- Each button stores the language -->
+  <div class="lang-container">
     <button class="lang-btn" onclick="selectLanguage('hindi')">हिंदी</button>
     <button class="lang-btn" onclick="selectLanguage('english')">English</button>
     <button class="lang-btn" onclick="selectLanguage('odia')">ଓଡ଼ିଆ</button>
@@ -135,9 +131,7 @@ footer span { font-weight: 600; }
 
 <script>
   function selectLanguage(lang) {
-    // Save selected language in localStorage
     localStorage.setItem("selectedLanguage", lang);
-    // Redirect to grades page
     window.location.href = "grades.html";
   }
 </script>

@@ -2,30 +2,29 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<title>Fun English Word Guessing Game</title>
+<title>Fun English Word Guessing Game - 5 Questions</title>
 <style>
+  html, body {
+    height: 100%;
+    margin: 0;
+  }
   body {
     font-family: 'Poppins', sans-serif;
     background: linear-gradient(135deg, #6a11cb, #2575fc, #1dd1a1, #feca57);
     background-size: 400% 400%;
     animation: gradientBG 15s ease infinite;
     color: white;
-    text-align: center;
-    margin: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
     padding: 30px;
     position: relative;
+    flex-direction: column;
   }
   @keyframes gradientBG {
     0% {background-position: 0% 50%;}
     50% {background-position: 100% 50%;}
     100% {background-position: 0% 50%;}
-  }
-  button {
-    user-select: none;
-    transition: transform 0.1s ease;
-  }
-  button:active {
-    transform: scale(0.9);
   }
   #backBtn {
     position: fixed;
@@ -45,14 +44,23 @@
   #backBtn:hover {
     background-color: #e6b642;
   }
-  #wordDisplay {
-    font-size: 2em;
-    letter-spacing: 10px;
+  #container {
+    max-width: 700px;
+    width: 100%;
+    text-align: center;
+  }
+  h2 {
     margin-bottom: 20px;
   }
   #hint {
     font-size: 1.2em;
     margin-bottom: 20px;
+  }
+  #wordDisplay {
+    font-size: 2em;
+    letter-spacing: 10px;
+    margin-bottom: 20px;
+    min-height: 48px;
   }
   #letters {
     display: grid;
@@ -88,9 +96,21 @@
     margin-top: 30px;
     font-size: 1.5em;
     font-weight: 700;
+    min-height: 36px;
   }
-  #restartBtn, #retryBtn {
+  #badgeArea {
+    margin-top: 15px;
+    font-size: 2.5em;
+    min-height: 50px;
+  }
+  #progress {
+    margin-bottom: 15px;
+    font-weight: 700;
+  }
+  #buttonsWrapper {
     margin-top: 20px;
+  }
+  #restartBtn, #retryBtn, #nextBtn, #finishBtn {
     border: none;
     padding: 10px 25px;
     font-weight: 700;
@@ -98,6 +118,7 @@
     border-radius: 8px;
     cursor: pointer;
     transition: background 0.3s;
+    margin: 0 5px;
   }
   #restartBtn {
     background-color: #feca57;
@@ -110,71 +131,125 @@
   #retryBtn {
     background-color: #1dd1a1;
     color: #222;
-    margin-left: 10px;
   }
   #retryBtn:hover {
     background-color: #17a589;
+  }
+  #nextBtn {
+    background-color: #2575fc;
+    color: white;
+    display: none;
+  }
+  #nextBtn:hover {
+    background-color: #1a4db8;
+  }
+  #finishBtn {
+    background-color: #28a745;
+    color: white;
+    display: none;
+  }
+  #finishBtn:hover {
+    background-color: #1e7e34;
+  }
+  /* Confetti style */
+  #confetti {
+    position: fixed;
+    pointer-events: none;
+    top: 0; left: 0; right: 0; bottom: 0;
+    z-index: 1500;
+    overflow: visible;
+  }
+  .confetti-piece {
+    position: absolute;
+    font-size: 1.5em;
+    animation: fall 3s linear forwards;
+    opacity: 0.8;
+  }
+  @keyframes fall {
+    to {
+      transform: translateY(100vh) rotate(360deg);
+      opacity: 0;
+    }
   }
 </style>
 </head>
 <body>
 
 <button id="backBtn" onclick="window.location.href='../subjects.html'">Back</button>
-  
 
+<div id="container">
+  <h2>English Word Guessing Game - 5 Questions</h2>
+  <div id="progress"></div>
+  <div id="hint"></div>
+  <div id="wordDisplay"></div>
+  <div id="letters"></div>
+  <div id="tries"></div>
+  <div id="message"></div>
+  <div id="badgeArea" title="Your badge"></div>
 
-<h2>English Word Guessing Game - Grade 6/7</h2>
-<div id="hint"></div>
-<div id="wordDisplay"></div>
-<div id="letters"></div>
-<div id="tries"></div>
-<div id="message"></div>
-<button id="retryBtn" onclick="restartGame()">Retry</button>
-<button id="restartBtn" onclick="restartGame()">Play Again</button>
+  <div id="buttonsWrapper">
+    <button id="retryBtn" onclick="retryQuestion()">Retry</button>
+    <button id="nextBtn" onclick="nextQuestion()">Next</button>
+    <button id="finishBtn" onclick="finishGame()">Finish</button>
+    <button id="restartBtn" onclick="restartGame()">Play Again</button>
+  </div>
+</div>
+
+<div id="confetti"></div>
 
 <script>
-  const words = [
+  const questions = [
     {word: "elephant", hint: "A large gray animal with a trunk"},
     {word: "mountain", hint: "A very high natural place on Earth"},
     {word: "computer", hint: "An electronic device for processing data"},
     {word: "library", hint: "Building with books for reading"},
     {word: "jungle", hint: "Dense tropical forest"},
-    {word: "planet", hint: "Earth is one of these"},
-    {word: "painter", hint: "An artist who uses colors"},
   ];
 
+  let currentIndex = 0;
   let selectedWord = "";
   let selectedHint = "";
   let guessedLetters = [];
   let triesLeft = 6;
+  let correctAnswers = 0;
+  let questionCompleted = false;
 
   const wordDisplay = document.getElementById('wordDisplay');
   const hintDisplay = document.getElementById('hint');
   const lettersDiv = document.getElementById('letters');
   const triesDisplay = document.getElementById('tries');
   const messageDisplay = document.getElementById('message');
+  const badgeArea = document.getElementById('badgeArea');
+  const progressDisplay = document.getElementById('progress');
+
   const restartBtn = document.getElementById('restartBtn');
   const retryBtn = document.getElementById('retryBtn');
+  const nextBtn = document.getElementById('nextBtn');
+  const finishBtn = document.getElementById('finishBtn');
 
-  function goBack() {
-    window.location.href = "subjects.html"; // Change to your back page URL
+  const confettiContainer = document.getElementById('confetti');
 
-
-  }
-
-  function pickWord() {
-    const idx = Math.floor(Math.random() * words.length);
-    selectedWord = words[idx].word.toUpperCase();
-    selectedHint = words[idx].hint;
+  function loadQuestion(index) {
+    const q = questions[index];
+    selectedWord = q.word.toUpperCase();
+    selectedHint = q.hint;
     guessedLetters = [];
     triesLeft = 6;
+    questionCompleted = false;
+
     messageDisplay.textContent = "";
-    restartBtn.style.display = "none";
-    retryBtn.style.display = "inline-block";
+    badgeArea.textContent = "";
     hintDisplay.textContent = "Hint: " + selectedHint;
     triesDisplay.textContent = `Tries left: ${triesLeft}`;
+    progressDisplay.textContent = `Question ${index + 1} of ${questions.length}`;
+    
     generateButtons();
     updateWordDisplay();
+
+    retryBtn.style.display = "inline-block";
+    restartBtn.style.display = "none";
+    finishBtn.style.display = "none";
+    nextBtn.style.display = "none"; // hidden until user finishes this word
   }
 
   function generateButtons() {
@@ -203,7 +278,7 @@
   }
 
   function guessLetter(letter, button) {
-    if (guessedLetters.includes(letter) || triesLeft === 0) return;
+    if (guessedLetters.includes(letter) || triesLeft === 0 || questionCompleted) return;
 
     guessedLetters.push(letter);
     button.classList.add('disabled');
@@ -222,26 +297,113 @@
   function checkGameOver() {
     if (!wordDisplay.textContent.includes("_")) {
       messageDisplay.textContent = "🎉 Congrats! You guessed the word!";
-      endGame();
+      correctAnswers++;
+      questionCompleted = true;
+      retryBtn.style.display = "none";
+      if(currentIndex < questions.length - 1) {
+        nextBtn.style.display = "inline-block";
+      } else {
+        finishBtn.style.display = "inline-block";
+      }
+      launchConfetti();
+      disableLetterButtons();
     } else if(triesLeft === 0) {
       messageDisplay.textContent = `Game over! The word was "${selectedWord}".`;
       wordDisplay.textContent = selectedWord.split("").join(" ");
-      endGame();
+      questionCompleted = true;
+      retryBtn.style.display = "none";
+      if(currentIndex < questions.length - 1) {
+        nextBtn.style.display = "inline-block";
+      } else {
+        finishBtn.style.display = "inline-block";
+      }
+      disableLetterButtons();
     }
   }
 
-  function endGame() {
+  function disableLetterButtons() {
     const buttons = document.querySelectorAll('.letter-btn');
     buttons.forEach(btn => btn.disabled = true);
+  }
+
+  function retryQuestion() {
+    guessedLetters = [];
+    triesLeft = 6;
+    questionCompleted = false;
+    messageDisplay.textContent = "";
+    triesDisplay.textContent = `Tries left: ${triesLeft}`;
+    updateWordDisplay();
+    generateButtons();
+    retryBtn.style.display = "inline-block";
+    nextBtn.style.display = "none";
+    finishBtn.style.display = "none";
+  }
+
+  function nextQuestion() {
+    if(currentIndex < questions.length - 1) {
+      currentIndex++;
+      loadQuestion(currentIndex);
+    }
+  }
+
+  function finishGame() {
+    messageDisplay.textContent = `🎉 You completed all questions! You got ${correctAnswers} out of ${questions.length} correct!`;
+    hintDisplay.textContent = "";
+    wordDisplay.textContent = "";
+    triesDisplay.textContent = "";
+    lettersDiv.innerHTML = "";
+    progressDisplay.textContent = "";
     retryBtn.style.display = "none";
+    nextBtn.style.display = "none";
+    finishBtn.style.display = "none";
     restartBtn.style.display = "inline-block";
+
+    showFinalBadge();
+    launchConfetti();
+  }
+
+  function showFinalBadge() {
+    if(correctAnswers === questions.length) {
+      badgeArea.textContent = "🏆 Gold Badge - Perfect Score!";
+      badgeArea.title = "Gold Badge for guessing all words correctly!";
+    } else if(correctAnswers >= Math.ceil(questions.length * 0.6)) {
+      badgeArea.textContent = "🥈 Silver Badge - Great job!";
+      badgeArea.title = "Silver Badge for guessing most words correctly!";
+    } else if(correctAnswers > 0) {
+      badgeArea.textContent = "🥉 Bronze Badge - Keep practicing!";
+      badgeArea.title = "Bronze Badge for trying your best!";
+    } else {
+      badgeArea.textContent = "💔 No Badge - Try again!";
+      badgeArea.title = "No badge earned. Keep practicing!";
+    }
   }
 
   function restartGame() {
-    pickWord();
+    currentIndex = 0;
+    correctAnswers = 0;
+    loadQuestion(currentIndex);
+    restartBtn.style.display = "none";
   }
 
-  pickWord();
+  // Confetti animation for celebration
+  function launchConfetti() {
+    const colors = ['#feca57', '#1dd1a1', '#2575fc', '#6a11cb', '#ff6b6b'];
+    for(let i=0; i<100; i++) {
+      const confetti = document.createElement('div');
+      confetti.classList.add('confetti-piece');
+      confetti.style.color = colors[Math.floor(Math.random()*colors.length)];
+      confetti.style.left = Math.random() * 100 + 'vw';
+      confetti.style.top = -10 + 'vh';
+      confetti.style.fontSize = (Math.random()*10 + 10) + 'px';
+      confetti.style.animationDelay = (Math.random()*3) + 's';
+      confetti.textContent = '🎉';
+      confettiContainer.appendChild(confetti);
+      setTimeout(() => confetti.remove(), 4000);
+    }
+  }
+
+  // Start the first question on page load
+  loadQuestion(currentIndex);
 </script>
 
 </body>
