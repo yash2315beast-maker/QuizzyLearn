@@ -62,9 +62,8 @@
             box-shadow: 0 5px 20px rgba(0,0,0,0.3);
         }
 
-        h1 {
-            margin-top: 0;
-        }
+        h1 { margin-top: 0; }
+        p { margin: 0 0 15px 0; }
 
         #scene {
             position: relative;
@@ -95,29 +94,23 @@
             bottom: 110px;
             left: calc(20% + 50px);
             height: 30px;
-            width: 0; /* Starts at 0 width */
+            width: 0;
             background: var(--light-beam-color);
-            clip-path: polygon(0 0, 100% -50%, 100% 150%, 0% 100%); /* Angled beam */
+            clip-path: polygon(0 0, 100% -50%, 100% 150%, 0% 100%);
             transition: width 0.5s ease-in-out;
         }
         
         #ship {
             position: absolute;
             bottom: 10px;
-            right: -100px; /* Starts off-screen */
+            right: -100px;
             width: 80px;
             font-size: 50px;
             transition: right 2s ease-in-out;
         }
-
-        #ship.safe {
-            right: 15%; /* Moves on-screen when safe */
-        }
+        #ship.safe { right: 15%; }
         
-        #quiz-area {
-            min-height: 250px;
-        }
-
+        #quiz-area { min-height: 250px; }
         #question-text {
             font-size: 1.5em;
             margin-bottom: 20px;
@@ -144,19 +137,72 @@
             background-color: #607d8b;
             transform: translateY(-2px);
         }
-        .btn:disabled {
-            cursor: not-allowed;
-            opacity: 0.7;
-        }
+        .btn:disabled { cursor: not-allowed; opacity: 0.7; }
 
         #next-question-btn {
             margin-top: 20px;
             background-color: #1976d2;
             width: 50%;
         }
+        .hidden { display: none; }
 
-        .hidden {
-            display: none;
+
+        /* ============================================= */
+        /* --- MOBILE RESPONSIVE STYLES --- */
+        /* ============================================= */
+        @media (max-width: 600px) {
+            body {
+                align-items: flex-start; /* Align container to top */
+            }
+
+            #game-container {
+                width: 100%;
+                max-width: 100%;
+                height: 100vh;
+                border-radius: 0;
+                box-shadow: none;
+                padding: 15px;
+                display: flex;
+                flex-direction: column;
+                justify-content: center; /* Vertically center content */
+            }
+
+            h1 { font-size: 1.8em; }
+            p { font-size: 0.9em; }
+
+            .back-btn {
+                width: 45px;
+                height: 45px;
+                font-size: 1.5rem;
+                top: 15px;
+                left: 15px;
+            }
+
+            #scene {
+                height: 120px; /* Make scene more compact */
+                margin-bottom: 15px;
+            }
+            #lighthouse { width: 40px; height: 100px; }
+            #lighthouse-top { bottom: 100px; left: calc(20% - 10px); width: 60px; height: 15px; }
+            #light-beam { bottom: 95px; }
+            #ship { font-size: 40px; }
+
+            #quiz-area { min-height: 0; }
+            #question-text {
+                font-size: 1.2em;
+                min-height: 40px;
+                margin-bottom: 15px;
+            }
+
+            .btn {
+                padding: 12px; /* Adjust padding for smaller buttons */
+                font-size: 1em;
+            }
+            
+            #next-question-btn {
+                width: 100%; /* Full width for easy tapping */
+                padding: 15px;
+            }
         }
     </style>
 </head>
@@ -188,62 +234,22 @@
     </div>
 
     <script>
+        // JavaScript logic remains the same, it works perfectly with the new styles.
         const questions = [
-            {
-                q: "Which of these is a natural source of light?",
-                options: ["A light bulb", "The Sun", "A candle", "A mirror"],
-                answer: 1
-            },
-            {
-                q: "An object that does NOT produce its own light is called...",
-                options: ["Luminous", "Transparent", "Non-luminous", "Opaque"],
-                answer: 2
-            },
-            {
-                q: "Light travels in...",
-                options: ["Curved paths", "Zig-zag lines", "Circles", "Straight lines"],
-                answer: 3
-            },
-            {
-                q: "What is it called when light bounces off a surface?",
-                options: ["Refraction", "Absorption", "Reflection", "Shadow"],
-                answer: 2
-            },
-            {
-                q: "An object that blocks all light from passing through is...",
-                options: ["Transparent", "Translucent", "Opaque", "Luminous"],
-                answer: 2
-            },
-            {
-                q: "What is formed when an opaque object blocks the path of light?",
-                options: ["A reflection", "A shadow", "A rainbow", "An image"],
-                answer: 1
-            },
-            {
-                q: "Which surface would cause the clearest reflection (like a mirror)?",
-                options: ["A wooden table", "A piece of paper", "A smooth, shiny metal plate", "A brick wall"],
-                answer: 2
-            },
-            {
-                q: "You can see through a clear glass window because it is...",
-                options: ["Opaque", "Translucent", "Transparent", "Reflective"],
-                answer: 2
-            },
-             {
-                q: "The Moon shines because it...",
-                options: ["Creates its own light", "Is a star", "Reflects light from the Sun", "Is on fire"],
-                answer: 2
-            },
-            {
-                q: "A flat, smooth mirror is also known as a...",
-                options: ["Curved mirror", "Plane mirror", "Lens", "Prism"],
-                answer: 1
-            }
+            { q: "Which of these is a natural source of light?", options: ["A light bulb", "The Sun", "A candle", "A mirror"], answer: 1 },
+            { q: "An object that does NOT produce its own light is called...", options: ["Luminous", "Transparent", "Non-luminous", "Opaque"], answer: 2 },
+            { q: "Light travels in...", options: ["Curved paths", "Zig-zag lines", "Circles", "Straight lines"], answer: 3 },
+            { q: "What is it called when light bounces off a surface?", options: ["Refraction", "Absorption", "Reflection", "Shadow"], answer: 2 },
+            { q: "An object that blocks all light from passing through is...", options: ["Transparent", "Translucent", "Opaque", "Luminous"], answer: 2 },
+            { q: "What is formed when an opaque object blocks the path of light?", options: ["A reflection", "A shadow", "A rainbow", "An image"], answer: 1 },
+            { q: "Which surface would cause the clearest reflection (like a mirror)?", options: ["A wooden table", "A piece of paper", "A smooth, shiny metal plate", "A brick wall"], answer: 2 },
+            { q: "You can see through a clear glass window because it is...", options: ["Opaque", "Translucent", "Transparent", "Reflective"], answer: 2 },
+             { q: "The Moon shines because it...", options: ["Creates its own light", "Is a star", "Reflects light from the Sun", "Is on fire"], answer: 2 },
+            { q: "A flat, smooth mirror is also known as a...", options: ["Curved mirror", "Plane mirror", "Lens", "Prism"], answer: 1 }
         ];
 
         const WINNING_SCORE = 7;
 
-        // DOM Elements
         const questionText = document.getElementById('question-text');
         const answerOptionsDiv = document.getElementById('answer-options');
         const answerBtns = document.querySelectorAll('.answer-btn');
@@ -251,7 +257,6 @@
         const lightBeam = document.getElementById('light-beam');
         const ship = document.getElementById('ship');
 
-        // Game State
         let score = 0;
         let availableQuestions = [];
         let currentQuestion = {};
@@ -267,17 +272,15 @@
 
         function displayNewQuestion() {
             if (availableQuestions.length === 0) {
-                endGame(false); // No more questions
+                endGame(false);
                 return;
             }
 
-            // Reset button colors and enable them
             answerBtns.forEach(btn => {
                 btn.style.backgroundColor = '';
                 btn.disabled = false;
             });
 
-            // Get a random question
             const qIndex = Math.floor(Math.random() * availableQuestions.length);
             currentQuestion = availableQuestions.splice(qIndex, 1)[0];
 
@@ -292,8 +295,6 @@
 
         function selectAnswer(selectedIndex) {
             const correct = selectedIndex === currentQuestion.answer;
-
-            // Disable buttons after selection
             answerBtns.forEach(btn => btn.disabled = true);
 
             if (correct) {
@@ -316,7 +317,9 @@
         
         function updateBeam() {
             const beamPercentage = (score / WINNING_SCORE) * 100;
-            lightBeam.style.width = `${beamPercentage * 3}px`; // Adjust multiplier for visual effect
+            // The multiplier might need adjustment based on screen width, but this works well.
+            const beamWidth = (window.innerWidth > 600) ? beamPercentage * 3.5 : beamPercentage * 2.5;
+            lightBeam.style.width = `${beamWidth}px`;
         }
 
         function endGame(isWin) {
@@ -332,8 +335,6 @@
             nextQuestionBtn.classList.remove('hidden');
         }
 
-
-        // Event Listeners
         nextQuestionBtn.addEventListener('click', () => {
             if (nextQuestionBtn.textContent.includes('Game') || nextQuestionBtn.textContent.includes('Again')) {
                 startGame();

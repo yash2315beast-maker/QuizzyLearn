@@ -4,137 +4,331 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>CS Quiz Game</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-  body { font-family:'Poppins', sans-serif; background:#f0f8ff; margin:0; padding:0; display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:100vh; }
+  :root {
+    --bg-dark: #0a0c10;
+    --ui-panel: rgba(20, 25, 50, 0.8);
+    --accent-color: #00d9ff;
+    --accent-color-dim: rgba(0, 217, 255, 0.4);
+    --text-color: #e0e6f0;
+    --correct-bg: rgba(76, 175, 80, 0.2);
+    --correct-border: #4caf50;
+    --incorrect-bg: rgba(244, 67, 54, 0.2);
+    --incorrect-border: #f44336;
+    --warning-color: #ffc107;
+  }
 
-  /* Back button fixed at top-left */
+  body { 
+    font-family: 'Roboto Mono', monospace; 
+    background-color: var(--bg-dark); 
+    color: var(--text-color);
+    margin: 0; 
+    padding: 20px; 
+    display: flex; 
+    flex-direction: column; 
+    align-items: center; 
+    justify-content: center; 
+    min-height: 100vh; 
+    overflow: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: 
+      linear-gradient(to right, rgba(0, 217, 255, 0.1) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(0, 217, 255, 0.1) 1px, transparent 1px);
+    background-size: 40px 40px;
+    z-index: -1;
+    animation: pan-grid 30s linear infinite;
+  }
+
+  @keyframes pan-grid {
+    0% { background-position: 0 0; }
+    100% { background-position: 40px 40px; }
+  }
+  
   #backBtn { 
     position: fixed; 
-    top: 0; left: 0; margin: 10px; padding: 10px 20px; 
-    font-size: 1rem; border:none; border-radius:8px; 
-    background:#f95738; color:white; cursor:pointer; 
-    z-index:1000; transition:0.3s; 
+    top: 20px; 
+    left: 20px; 
+    padding: 10px 20px; 
+    font-size: 1rem; 
+    font-family: 'Orbitron', sans-serif;
+    border: 2px solid var(--accent-color-dim);
+    border-radius: 8px; 
+    background: transparent; 
+    color: var(--accent-color); 
+    cursor: pointer; 
+    z-index: 1000; 
+    transition: all 0.3s ease; 
   }
-  #backBtn:hover { background:#0d3b66; }
+  #backBtn:hover { 
+    background: var(--accent-color); 
+    color: var(--bg-dark);
+    box-shadow: 0 0 15px var(--accent-color);
+  }
 
-  .container { background:#fff; padding:30px 50px; border-radius:15px; box-shadow:0 10px 25px rgba(0,0,0,0.2); text-align:center; max-width:500px; width:90%; position:relative; }
-  h1 { color:#0d3b66; }
+  .quiz-window { 
+    background: var(--ui-panel);
+    backdrop-filter: blur(10px);
+    padding: 30px 40px; 
+    border-radius: 15px; 
+    border: 2px solid var(--accent-color-dim);
+    box-shadow: 0 0 25px rgba(0, 217, 255, 0.3); 
+    text-align: center; 
+    max-width: 600px; 
+    width: 90%; 
+    position: relative; 
+  }
+  
+  h1 { 
+    font-family: 'Orbitron', sans-serif;
+    color: var(--accent-color);
+    text-shadow: 0 0 10px var(--accent-color);
+    margin-top: 0;
+  }
 
-  /* Progress bar styles */
   #progress-container {
     width: 100%;
-    background: #e0e0e0;
+    background: rgba(0,0,0,0.3);
     border-radius: 10px;
-    margin: 15px 0 25px;
-    height: 15px;
-    overflow: hidden;
+    margin: 20px 0 30px;
+    height: 10px;
   }
   #progress-bar {
     width: 0%;
     height: 100%;
-    background: linear-gradient(90deg, #28a745, #0d3b66);
+    background: var(--accent-color);
     border-radius: 10px;
     transition: width 0.4s ease-in-out;
+    box-shadow: 0 0 10px var(--accent-color);
   }
 
-  /* Option buttons */
-  button.optionBtn { background:#0d3b66; color:white; border:none; padding:12px 25px; margin:10px 0; border-radius:10px; cursor:pointer; font-size:1rem; width:100%; transition:0.3s; }
-  button.optionBtn:hover { background:#f95738; }
+  #question-wrapper {
+    min-height: 50px;
+    margin-bottom: 20px;
+  }
+  #question {
+    font-size: 1.2rem;
+    font-weight: 500;
+  }
 
-  /* Container for Next and Restart buttons */
-  .action-buttons { display:flex; gap:15px; margin-top:20px; justify-content:center; }
+  .options-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
 
-  /* Next button small & new color */
-  #nextBtn { background:#28a745; color:white; padding:8px 20px; border-radius:8px; cursor:pointer; font-size:0.9rem; transition:0.3s; }
-  #nextBtn:hover { background:#218838; }
+  button.optionBtn { 
+    background: transparent; 
+    color: var(--text-color); 
+    border: 2px solid var(--accent-color-dim);
+    padding: 15px; 
+    border-radius: 8px; 
+    cursor: pointer; 
+    font-size: 1rem;
+    font-family: 'Roboto Mono', monospace;
+    width: 100%; 
+    text-align: left;
+    transition: all 0.3s ease; 
+  }
+  button.optionBtn:hover:not(:disabled) { 
+    background: var(--accent-color-dim);
+    border-color: var(--accent-color);
+  }
+  button.optionBtn:disabled {
+    cursor: not-allowed;
+    opacity: 0.7;
+  }
+  
+  /* --- NEW STYLES for Correct/Incorrect Buttons --- */
+  button.optionBtn.correct {
+    background-color: var(--correct-bg);
+    border-color: var(--correct-border);
+    color: #fff;
+    font-weight: bold;
+  }
+  button.optionBtn.incorrect {
+    background-color: var(--incorrect-bg);
+    border-color: var(--incorrect-border);
+  }
 
-  /* Restart button beside Next */
-  #restartBtn { background:#ffc107; color:#222; padding:8px 20px; border-radius:8px; cursor:pointer; font-size:0.9rem; transition:0.3s; display:none; }
-  #restartBtn:hover { background:#e0a800; }
+  /* --- NEW: Feedback Box --- */
+  #feedback {
+    margin-top: 20px;
+    padding: 15px;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    text-align: left;
+    display: none; /* Hidden by default */
+  }
+  #feedback.correct {
+    background-color: var(--correct-bg);
+    border: 1px solid var(--correct-border);
+  }
+  #feedback.incorrect {
+    background-color: var(--incorrect-bg);
+    border: 1px solid var(--incorrect-border);
+  }
 
-  /* Result section */
-  #result { display:none; margin-top:20px; text-align:center; }
+  .action-buttons { 
+    display: flex; 
+    gap: 15px; 
+    margin-top: 25px; 
+    justify-content: center; 
+  }
+
+  .action-btn {
+    color: var(--bg-dark); 
+    padding: 10px 25px; 
+    border-radius: 8px; 
+    border: none;
+    cursor: pointer; 
+    font-size: 1rem;
+    font-family: 'Orbitron', sans-serif;
+    font-weight: bold;
+    transition: all 0.3s ease;
+  }
+  #nextBtn { 
+    background: var(--accent-color); 
+  }
+  #nextBtn:hover { 
+    box-shadow: 0 0 15px var(--accent-color);
+    transform: scale(1.05);
+  }
+  #restartBtn { 
+    background: var(--warning-color); 
+    display:none; 
+  }
+   #restartBtn:hover { 
+    box-shadow: 0 0 15px var(--warning-color);
+    transform: scale(1.05);
+  }
+
+  #result { display: none; }
+  #result h2 {
+    font-size: 2rem;
+    font-family: 'Orbitron', sans-serif;
+    color: var(--accent-color);
+  }
+  #result p { font-size: 1.2rem; }
 </style>
 </head>
 <body>
 
-<!-- Back button fixed at top-left -->
-<button id="backBtn" onclick="goBack()">Back</button>
+<button id="backBtn" onclick="goBack()">BACK</button>
 
-<div class="container">
-  <h1>Computer Science Quiz</h1>
+<div class="quiz-window">
+  <h1>CS QUIZ</h1>
 
-  <!-- Progress bar added here -->
   <div id="progress-container">
     <div id="progress-bar"></div>
   </div>
   
   <div id="quiz">
-    <p id="question"></p>
-    <button id="option0" class="optionBtn" onclick="selectAnswer(0)"></button>
-    <button id="option1" class="optionBtn" onclick="selectAnswer(1)"></button>
-    <button id="option2" class="optionBtn" onclick="selectAnswer(2)"></button>
+    <div id="question-wrapper">
+        <p id="question"></p>
+    </div>
+    <div class="options-grid">
+      <button id="option0" class="optionBtn" onclick="selectAnswer(0)"></button>
+      <button id="option1" class="optionBtn" onclick="selectAnswer(1)"></button>
+      <button id="option2" class="optionBtn" onclick="selectAnswer(2)"></button>
+    </div>
+    <!-- New Feedback Element -->
+    <div id="feedback"></div>
+  </div>
+
+  <div id="result">
+    <h2>Score: <span id="score"></span>/15</h2>
+    <p id="reward"></p>
+  </div>
+  
+  <div class="action-buttons">
+    <button id="nextBtn" class="action-btn" onclick="nextQuestion()">Next</button>
+    <button id="restartBtn" class="action-btn" onclick="restartQuiz()">Restart</button>
   </div>
 </div>
 
-<!-- Next and Restart buttons outside quiz container -->
-<div class="action-buttons">
-  <button id="nextBtn" onclick="nextQuestion()">Next</button>
-  <button id="restartBtn" onclick="restartQuiz()">Restart</button>
-</div>
-
-<!-- Result section -->
-<div id="result">
-  <h2>Your Score: <span id="score"></span>/15</h2>
-  <p id="reward"></p>
-</div>
-
 <script>
+// --- MODIFIED: Added 'explanation' to each question object ---
 const questions = [
-  { question: "What does CPU stand for?", options:["Central Processing Unit","Computer Personal Unit","Central Print Unit"], answer:0 },
-  { question: "Which device is used to point and click on a computer screen?", options:["Keyboard","Mouse","Monitor"], answer:1 },
-  { question: "Which one is an example of an output device?", options:["Printer","Microphone","Scanner"], answer:0 },
-  { question: "What is software?", options:["Physical parts of a computer","Programs and instructions that run on a computer","Internet connection"], answer:1 },
-  { question: "Which language is commonly used to create web pages?", options:["Python","HTML","Java"], answer:1 },
-  { question: "Which part stores data permanently?", options:["RAM","Hard Drive","CPU"], answer:1 },
-  { question: "Which is an input device?", options:["Monitor","Keyboard","Printer"], answer:1 },
-  { question: "Which is NOT a programming language?", options:["Java","Python","HTML"], answer:2 },
-  { question: "What does RAM stand for?", options:["Random Access Memory","Read Access Memory","Rapid Application Memory"], answer:0 },
-  { question: "Which device displays visuals on screen?", options:["Printer","Monitor","Keyboard"], answer:1 },
-  { question: "Which symbol is used for AND in Boolean logic?", options:["&","|","!"], answer:0 },
-  { question: "Which symbol is used for OR in Boolean logic?", options:["&","|","!"], answer:1 },
-  { question: "Which of these is a storage device?", options:["Keyboard","SSD","Mouse"], answer:1 },
-  { question: "Which software runs the computer?", options:["Operating System","Word Processor","Spreadsheet"], answer:0 },
-  { question: "Which tag is used for headings in HTML?", options:["<head>","<h1>","<p>"], answer:1 }
+  { question: "What does CPU stand for?", options:["Central Processing Unit","Computer Personal Unit","Central Print Unit"], answer:0, explanation: "CPU stands for Central Processing Unit. It acts as the 'brain' of the computer, performing calculations and executing commands." },
+  { question: "Which device is used to point and click on a computer screen?", options:["Keyboard","Mouse","Monitor"], answer:1, explanation: "A mouse is the primary pointing device used to interact with graphical user interfaces (GUIs) by pointing and clicking." },
+  { question: "Which one is an example of an output device?", options:["Printer","Microphone","Scanner"], answer:0, explanation: "An output device sends data out of the computer. A printer takes digital data and creates a physical copy (output)." },
+  { question: "What is software?", options:["Physical parts of a computer","Programs and instructions","Internet connection"], answer:1, explanation: "Software is a set of programs, instructions, and data that tells a computer what to do. Hardware is the physical parts." },
+  { question: "Which language is used to create web pages?", options:["Python","HTML","Java"], answer:1, explanation: "HTML (HyperText Markup Language) is the standard language used to structure the content of web pages." },
+  { question: "Which part stores data permanently?", options:["RAM","Hard Drive","CPU"], answer:1, explanation: "A Hard Drive (or SSD) provides non-volatile storage, meaning it keeps data even when the power is off. RAM is volatile." },
+  { question: "Which is an input device?", options:["Monitor","Keyboard","Printer"], answer:1, explanation: "An input device sends data into the computer. A keyboard is used to input text and commands." },
+  { question: "Which is NOT a programming language?", options:["Java","Python","HTML"], answer:2, explanation: "HTML is a 'markup language,' used for structuring content, not for writing logic or programs like Java and Python." },
+  { question: "What does RAM stand for?", options:["Random Access Memory","Read Access Memory","Rapid Application Memory"], answer:0, explanation: "RAM stands for Random Access Memory. It's the computer's short-term memory, where it stores data it's actively using." },
+  { question: "Which device displays visuals on screen?", options:["Printer","Monitor","Keyboard"], answer:1, explanation: "A monitor is an output device that displays visual information from the computer's graphics card." },
+  { question: "Which symbol is used for AND in Boolean logic?", options:["&","|","!"], answer:0, explanation: "The ampersand (& or && in many languages) represents the logical AND operator, which is true only if both operands are true." },
+  { question: "Which symbol is used for OR in Boolean logic?", options:["&","|","!"], answer:1, explanation: "The pipe symbol (| or || in many languages) represents the logical OR operator, which is true if at least one operand is true." },
+  { question: "Which of these is a storage device?", options:["Keyboard","SSD","Mouse"], answer:1, explanation: "An SSD (Solid State Drive) is a modern type of storage device that stores data persistently, similar to a hard drive." },
+  { question: "Which software runs the computer?", options:["Operating System","Word Processor","Spreadsheet"], answer:0, explanation: "The Operating System (like Windows, macOS, or Linux) is the core software that manages all hardware and other software." },
+  { question: "Which tag is used for headings in HTML?", options:["<head>","<h1>","<p>"], answer:1, explanation: "The <h1> tag defines the most important heading. <p> is for paragraphs, and <head> contains meta-information." }
 ];
 
 let currentQuestion = 0;
 let userAnswers = Array(questions.length).fill(null);
+const questionElement = document.getElementById('question');
+const optionButtons = document.querySelectorAll('.optionBtn');
+const feedbackElement = document.getElementById('feedback');
 
 function loadQuestion(){
-  document.getElementById('question').innerText = questions[currentQuestion].question;
-  for(let i=0;i<3;i++){
-    const btn = document.getElementById('option'+i);
-    btn.innerText = questions[currentQuestion].options[i];
-    btn.style.background = userAnswers[currentQuestion]===i?"#f95738":"#0d3b66"; // highlight selected
-  }
+  // Reset UI elements
+  questionElement.innerText = questions[currentQuestion].question;
+  feedbackElement.style.display = 'none';
+  feedbackElement.className = '';
 
-  // Update progress bar
-  let progress = ((currentQuestion) / questions.length) * 100;
+  optionButtons.forEach((btn, index) => {
+    btn.innerText = questions[currentQuestion].options[index];
+    btn.disabled = false;
+    btn.className = 'optionBtn';
+  });
+
+  let progress = (currentQuestion / questions.length) * 100;
   document.getElementById('progress-bar').style.width = progress + "%";
 }
 
-function selectAnswer(selected){
-  userAnswers[currentQuestion] = selected;
-  loadQuestion();
+function selectAnswer(selectedIndex){
+  // Disable all buttons to prevent changing answer
+  optionButtons.forEach(btn => btn.disabled = true);
+
+  const correctIndex = questions[currentQuestion].answer;
+  userAnswers[currentQuestion] = selectedIndex;
+
+  // Show feedback
+  feedbackElement.style.display = 'block';
+  feedbackElement.innerText = questions[currentQuestion].explanation;
+
+  if (selectedIndex === correctIndex) {
+    optionButtons[selectedIndex].classList.add('correct');
+    feedbackElement.classList.add('correct');
+  } else {
+    optionButtons[selectedIndex].classList.add('incorrect');
+    optionButtons[correctIndex].classList.add('correct'); // Show the right one
+    feedbackElement.classList.add('incorrect');
+  }
 }
 
 function nextQuestion(){
+  // Prevent skipping questions
+  if (userAnswers[currentQuestion] === null) {
+    alert("Please select an answer to continue.");
+    return;
+  }
+
   if(currentQuestion < questions.length - 1){
     currentQuestion++;
     loadQuestion();
   } else {
-    // Final 100% when quiz ends
     document.getElementById('progress-bar').style.width = "100%";
     calculateScore();
   }
@@ -146,13 +340,17 @@ function goBack(){
 
 function calculateScore(){
   let score = 0;
-  for(let i=0;i<questions.length;i++){
+  for(let i=0; i<questions.length; i++){
     if(userAnswers[i] === questions[i].answer) score++;
   }
-  document.getElementById('quiz').style.display='none';
-  document.getElementById('nextBtn').style.display='none';
-  document.getElementById('restartBtn').style.display='inline-block';
-  document.getElementById('result').style.display='block';
+  document.getElementById('quiz').style.display = 'none';
+  document.querySelector('.quiz-window h1').style.display = 'none';
+  document.querySelector('#progress-container').style.display = 'none';
+  document.getElementById('nextBtn').style.display = 'none';
+  
+  document.getElementById('restartBtn').style.display = 'inline-block';
+  document.getElementById('result').style.display = 'block';
+
   document.getElementById('score').innerText = score;
   let rewardText = "";
   if(score === 15) rewardText = "🏆 Excellent! You earned a Gold Badge!";
@@ -163,12 +361,17 @@ function calculateScore(){
   
 function restartQuiz(){
   currentQuestion = 0;
-  userAnswers = Array(questions.length).fill(null);
-  document.getElementById('result').style.display='none';
-  document.getElementById('quiz').style.display='block';
-  document.getElementById('nextBtn').style.display='inline-block';
-  document.getElementById('restartBtn').style.display='none';
-  document.getElementById('progress-bar').style.width = "0%"; // reset progress bar
+  userAnswers.fill(null);
+  
+  document.getElementById('result').style.display = 'none';
+  document.getElementById('restartBtn').style.display = 'none';
+  
+  document.getElementById('quiz').style.display = 'block';
+  document.querySelector('.quiz-window h1').style.display = 'block';
+  document.querySelector('#progress-container').style.display = 'block';
+  document.getElementById('nextBtn').style.display = 'inline-block';
+  
+  document.getElementById('progress-bar').style.width = "0%";
   loadQuestion();
 }
 

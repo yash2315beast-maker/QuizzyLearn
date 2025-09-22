@@ -12,6 +12,7 @@
         --ui-bg: #D2B48C;
         --ui-border: #8B4513;
         --text-color: #3a240a;
+        --white: #ffffff;
     }
 
     body {
@@ -34,16 +35,22 @@
         align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(0,0,0,0.2);
         transition: all 0.3s ease;
     }
-    .back-btn:hover { background: var(--ui-border); color: white; transform: scale(1.1); }
+    .back-btn:hover { background: var(--ui-border); color: var(--white); transform: scale(1.1); }
 
-    #game-container { width: 100%; height: 100%; position: relative; }
+    #game-container { 
+        width: 100%; 
+        height: 100%; 
+        position: relative;
+        display: flex;
+        flex-direction: column;
+    }
 
     /* --- Game World --- */
     #game-world {
-        position: absolute;
-        bottom: 150px; /* Space for UI panel */
+        position: relative;
         width: 100%;
-        height: calc(100% - 150px);
+        flex-grow: 1; /* Key change for flex layout */
+        overflow: hidden; /* Prevent elements from appearing outside */
     }
 
     #ground {
@@ -76,7 +83,7 @@
         height: 25px;
         background-color: #333;
         border-radius: 50%;
-        display: none; /* Hidden until fired */
+        display: none;
     }
 
     #trajectory-path {
@@ -88,17 +95,17 @@
 
     /* --- UI Panel --- */
     #ui-panel {
-        position: absolute;
-        bottom: 0;
+        position: relative; /* Changed from absolute */
         width: 100%;
-        height: 150px;
         background: var(--ui-bg);
         border-top: 5px solid var(--ui-border);
         display: flex;
         justify-content: space-around;
         align-items: center;
-        padding: 0 20px;
+        padding: 20px;
         box-shadow: 0 -5px 15px rgba(0,0,0,0.2);
+        box-sizing: border-box;
+        flex-shrink: 0; /* Prevent from shrinking */
     }
 
     .control-group { text-align: center; }
@@ -116,7 +123,7 @@
         font-family: 'IM Fell English SC', serif;
         font-size: 2rem;
         background: #cd5c5c;
-        color: white;
+        color: var(--white);
         border: 3px solid #8b0000;
         border-radius: 10px;
         cursor: pointer;
@@ -130,12 +137,12 @@
     .modal {
         position: fixed; top: 0; left: 0; width: 100%; height: 100%;
         background: rgba(0,0,0,0.6); display: flex; justify-content: center;
-        align-items: center; z-index: 100; transition: opacity 0.3s;
+        align-items: center; z-index: 100; transition: opacity 0.3s; padding: 15px;
     }
     .modal.hidden { opacity: 0; pointer-events: none; }
     .modal-content {
         background: var(--ui-bg); padding: 30px; border-radius: 15px;
-        border: 5px solid var(--ui-border); width: 90%; max-width: 500px;
+        border: 5px solid var(--ui-border); width: 100%; max-width: 500px;
         text-align: center; box-shadow: 0 5px 20px rgba(0,0,0,0.3);
     }
     .modal-content h2 { font-family: 'IM Fell English SC', serif; font-size: 2.5em; margin-top: 0; }
@@ -148,10 +155,34 @@
     .option-btn.correct { background: #90ee90; }
     .option-btn.incorrect { background: #f08080; }
     
+    /* ============================================= */
+    /* --- MOBILE RESPONSIVE STYLES --- */
+    /* ============================================= */
     @media (max-width: 768px) {
-        #ui-panel { flex-direction: column; height: auto; padding: 15px; }
+        .back-btn { width: 45px; height: 45px; top: 15px; left: 15px; font-size: 1.5rem; }
+
+        #ui-panel {
+            flex-direction: column;
+            height: auto;
+            padding: 15px;
+            gap: 15px;
+        }
+        .control-group { width: 100%; }
+        .control-group label { font-size: 1.2rem; margin-bottom: 5px; }
         .control-group input[type="range"] { width: 90vw; max-width: 300px; }
-        #fire-btn { margin-top: 15px; }
+        #fire-btn { 
+            margin-top: 10px;
+            width: 100%;
+            font-size: 1.5rem;
+            padding: 15px;
+        }
+
+        #cannon { font-size: 60px; left: 10px; }
+        #target { font-size: 70px; }
+        #projectile { width: 20px; height: 20px; }
+
+        .modal-content h2 { font-size: 1.8em; }
+        .modal-content { padding: 20px; }
     }
 </style>
 </head>
@@ -181,218 +212,199 @@
     </div>
 </div>
 
-<!-- Modals -->
 <div id="quiz-modal" class="modal hidden">
     <div class="modal-content">
         <h2 id="level-title">Level 1: Pop Quiz!</h2>
-        <p id="quiz-question">What is the curved path an object follows when thrown?</p>
-        <div id="quiz-options">
-            <button class="option-btn">Trajectory</button>
-            <button class="option-btn">Velocity</button>
-            <button class="option-btn">Gravity</button>
-        </div>
+        <p id="quiz-question"></p>
+        <div id="quiz-options"></div>
         <p id="quiz-feedback" style="font-weight: bold; min-height: 24px;"></p>
     </div>
 </div>
 
 <script>
-const levels = [
-    { targetX: 600, targetY: 45, question: "What is the curved path an object follows when thrown?", options: ["Trajectory", "Velocity", "Gravity"], answer: 0 },
-    { targetX: 900, targetY: 45, question: "What force pulls a projectile down towards Earth?", options: ["Friction", "Gravity", "Thrust"], answer: 1 },
-    { targetX: 700, targetY: 150, question: "The best angle to get the maximum distance is usually...", options: ["90 degrees", "45 degrees", "20 degrees"], answer: 1 },
-    { targetX: 1100, targetY: 45, question: "The initial 'push' or speed given to a projectile is its...", options: ["Angle", "Inertia", "Velocity"], answer: 2 }
-];
+    // **KEY CHANGE**: Target positions are now percentages of screen width.
+    const levels = [
+        { targetX: 0.6, targetY: 45, question: "What is the curved path an object follows when thrown?", options: ["Trajectory", "Velocity", "Gravity"], answer: 0 },
+        { targetX: 0.85, targetY: 45, question: "What force pulls a projectile down towards Earth?", options: ["Friction", "Gravity", "Thrust"], answer: 1 },
+        { targetX: 0.7, targetY: 150, question: "The best angle to get the maximum distance is usually...", options: ["90 degrees", "45 degrees", "20 degrees"], answer: 1 },
+        { targetX: 0.95, targetY: 45, question: "The initial 'push' or speed given to a projectile is its...", options: ["Angle", "Inertia", "Velocity"], answer: 2 }
+    ];
 
-// DOM Elements
-const cannon = document.getElementById('cannon');
-const projectile = document.getElementById('projectile');
-const target = document.getElementById('target');
-const angleSlider = document.getElementById('angle-slider');
-const powerSlider = document.getElementById('power-slider');
-const angleValue = document.getElementById('angle-value');
-const powerValue = document.getElementById('power-value');
-const fireBtn = document.getElementById('fire-btn');
-const trajectoryPath = document.getElementById('trajectory-path');
-// Quiz Modal Elements
-const quizModal = document.getElementById('quiz-modal');
-const levelTitle = document.getElementById('level-title');
-const quizQuestion = document.getElementById('quiz-question');
-const quizOptions = document.getElementById('quiz-options');
-const quizFeedback = document.getElementById('quiz-feedback');
+    // DOM Elements
+    const gameWorld = document.getElementById('game-world');
+    const cannon = document.getElementById('cannon');
+    const projectile = document.getElementById('projectile');
+    const target = document.getElementById('target');
+    const angleSlider = document.getElementById('angle-slider');
+    const powerSlider = document.getElementById('power-slider');
+    const angleValue = document.getElementById('angle-value');
+    const powerValue = document.getElementById('power-value');
+    const fireBtn = document.getElementById('fire-btn');
+    const trajectoryPath = document.getElementById('trajectory-path');
+    const quizModal = document.getElementById('quiz-modal');
+    const levelTitle = document.getElementById('level-title');
+    const quizQuestion = document.getElementById('quiz-question');
+    const quizOptions = document.getElementById('quiz-options');
+    const quizFeedback = document.getElementById('quiz-feedback');
 
-// Game State
-let currentLevel = 0;
-let isFiring = false;
-let hasTrajectoryGuide = false;
+    // Game State
+    let currentLevel = 0;
+    let isFiring = false;
+    let hasTrajectoryGuide = false;
 
-// Physics Constants
-const GRAVITY = 0.2;
-const CANNON_ORIGIN_X = 90;
-const CANNON_ORIGIN_Y = 80;
+    // Physics Constants
+    const GRAVITY = 0.2;
+    const CANNON_ORIGIN_X_OFFSET = window.innerWidth > 768 ? 90 : 40;
+    const CANNON_ORIGIN_Y_OFFSET = 80;
 
-// --- Game Logic ---
-function setupLevel(levelIndex) {
-    if (levelIndex >= levels.length) {
-        levelTitle.textContent = "You Win!";
-        quizQuestion.textContent = "Congratulations, Commander! You have mastered projectile motion.";
-        quizOptions.innerHTML = '<button class="option-btn" onclick="initGame()">Play Again</button>';
-        quizModal.classList.remove('hidden');
-        return;
-    }
-    
-    currentLevel = levelIndex;
-    const level = levels[currentLevel];
-    
-    // Position target
-    target.style.left = `${level.targetX}px`;
-    target.style.bottom = `${level.targetY}px`;
-    
-    // Setup quiz
-    levelTitle.textContent = `Level ${currentLevel + 1}: Pop Quiz!`;
-    quizQuestion.textContent = level.question;
-    quizFeedback.textContent = '';
-    quizOptions.innerHTML = '';
-    level.options.forEach((opt, index) => {
-        const btn = document.createElement('button');
-        btn.className = 'option-btn';
-        btn.textContent = opt;
-        btn.onclick = () => checkQuizAnswer(index === level.answer);
-        quizOptions.appendChild(btn);
-    });
-
-    fireBtn.disabled = true;
-    quizModal.classList.remove('hidden');
-}
-
-function checkQuizAnswer(isCorrect) {
-    hasTrajectoryGuide = isCorrect;
-    document.querySelectorAll('.option-btn').forEach(btn => btn.disabled = true);
-
-    if (isCorrect) {
-        quizFeedback.textContent = "Correct! You've earned a Trajectory Guide for this shot.";
-    } else {
-        quizFeedback.textContent = "Not quite. You'll have to aim carefully!";
-    }
-
-    setTimeout(() => {
-        quizModal.classList.add('hidden');
-        fireBtn.disabled = false;
-        if (hasTrajectoryGuide) {
-            drawTrajectory();
+    // Game Logic
+    function setupLevel(levelIndex) {
+        if (levelIndex >= levels.length) {
+            levelTitle.textContent = "You Win!";
+            quizQuestion.textContent = "Congratulations, Commander! You have mastered projectile motion.";
+            quizOptions.innerHTML = '<button class="option-btn" onclick="initGame()">Play Again</button>';
+            quizModal.classList.remove('hidden');
+            return;
         }
-    }, 2000);
-}
+        
+        currentLevel = levelIndex;
+        const level = levels[currentLevel];
+        const screenWidth = gameWorld.clientWidth;
+        
+        // **KEY CHANGE**: Position target based on screen width percentage
+        const targetXPos = screenWidth * level.targetX;
+        target.style.left = `${targetXPos}px`;
+        target.style.bottom = `${level.targetY}px`;
+        
+        levelTitle.textContent = `Level ${currentLevel + 1}: Pop Quiz!`;
+        quizQuestion.textContent = level.question;
+        quizFeedback.textContent = '';
+        quizOptions.innerHTML = '';
+        level.options.forEach((opt, index) => {
+            const btn = document.createElement('button');
+            btn.className = 'option-btn';
+            btn.textContent = opt;
+            btn.onclick = () => checkQuizAnswer(index === level.answer);
+            quizOptions.appendChild(btn);
+        });
 
+        fireBtn.disabled = true;
+        quizModal.classList.remove('hidden');
+    }
 
-function fire() {
-    if (isFiring) return;
-    isFiring = true;
-    fireBtn.disabled = true;
-    trajectoryPath.innerHTML = ''; // Clear guide
+    function checkQuizAnswer(isCorrect) {
+        hasTrajectoryGuide = isCorrect;
+        document.querySelectorAll('.option-btn').forEach(btn => btn.disabled = true);
+        if (isCorrect) {
+            quizFeedback.textContent = "Correct! You've earned a Trajectory Guide for this shot.";
+        } else {
+            quizFeedback.textContent = "Not quite. You'll have to aim carefully!";
+        }
+        setTimeout(() => {
+            quizModal.classList.add('hidden');
+            fireBtn.disabled = false;
+            updateUI();
+        }, 2000);
+    }
 
-    const angle = parseFloat(angleSlider.value);
-    const power = parseFloat(powerSlider.value) / 4; // Scale power for better feel
-    
-    const rad = angle * Math.PI / 180;
-    let vx = Math.cos(rad) * power;
-    let vy = -Math.sin(rad) * power; // Y is inverted on screen
+    function fire() {
+        if (isFiring) return;
+        isFiring = true;
+        fireBtn.disabled = true;
+        trajectoryPath.innerHTML = '';
 
-    let projX = CANNON_ORIGIN_X;
-    let projY = window.innerHeight - 150 - CANNON_ORIGIN_Y;
+        const angle = parseFloat(angleSlider.value);
+        const power = parseFloat(powerSlider.value) / 4;
+        
+        const rad = angle * Math.PI / 180;
+        let vx = Math.cos(rad) * power;
+        let vy = -Math.sin(rad) * power;
 
-    projectile.style.left = `${projX}px`;
-    projectile.style.top = `${projY}px`;
-    projectile.style.display = 'block';
-    
-    const groundLevel = window.innerHeight - 150 - 50 - 12; // 150 UI, 50 ground, 12 half projectile
-
-    function animate() {
-        vy += GRAVITY;
-        projX += vx;
-        projY += vy;
+        let projX = CANNON_ORIGIN_X_OFFSET;
+        let projY = gameWorld.clientHeight - CANNON_ORIGIN_Y_OFFSET;
 
         projectile.style.left = `${projX}px`;
         projectile.style.top = `${projY}px`;
+        projectile.style.display = 'block';
         
-        // Check for hit
-        const targetRect = target.getBoundingClientRect();
-        if (projX >= targetRect.left && projX <= targetRect.right &&
-            projY >= targetRect.top && projY <= targetRect.bottom) {
+        const groundLevel = gameWorld.clientHeight - 50 - (projectile.clientHeight / 2);
+
+        function animate() {
+            vy += GRAVITY;
+            projX += vx;
+            projY += vy;
+
+            projectile.style.left = `${projX}px`;
+            projectile.style.top = `${projY}px`;
             
-            projectile.style.display = 'none';
-            isFiring = false;
-            alert('HIT! Proceeding to next level.');
-            setupLevel(currentLevel + 1);
-            return;
+            const targetRect = target.getBoundingClientRect();
+            const projRect = projectile.getBoundingClientRect();
+
+            if (projRect.left < targetRect.right && projRect.right > targetRect.left &&
+                projRect.top < targetRect.bottom && projRect.bottom > targetRect.top) {
+                
+                projectile.style.display = 'none';
+                isFiring = false;
+                alert('HIT! Proceeding to next level.');
+                setupLevel(currentLevel + 1);
+                return;
+            }
+
+            if (projY > groundLevel || projX > window.innerWidth) {
+                projectile.style.display = 'none';
+                isFiring = false;
+                fireBtn.disabled = false;
+                alert('MISS! Try again.');
+                return;
+            }
+            requestAnimationFrame(animate);
         }
-
-        // Check for miss
-        if (projY > groundLevel || projX > window.innerWidth) {
-            projectile.style.display = 'none';
-            isFiring = false;
-            fireBtn.disabled = false;
-            alert('MISS! Try again.');
-            return;
-        }
-
-        requestAnimationFrame(animate);
-    }
-    animate();
-}
-
-function drawTrajectory() {
-    if (isFiring) return;
-    const angle = parseFloat(angleSlider.value);
-    const power = parseFloat(powerSlider.value) / 4;
-    const rad = angle * Math.PI / 180;
-    let vx = Math.cos(rad) * power;
-    let vy = -Math.sin(rad) * power;
-    let x = CANNON_ORIGIN_X;
-    let y = window.innerHeight - 150 - CANNON_ORIGIN_Y;
-    const groundLevel = window.innerHeight - 150 - 50;
-
-    let pathData = `M ${x} ${y}`;
-    for (let t = 0; t < 200; t++) {
-        vy += GRAVITY;
-        x += vx;
-        y += vy;
-        if (y > groundLevel || x > window.innerWidth) break;
-        if (t % 2 === 0) { // Add points to the path
-             pathData += ` L ${x} ${y}`;
-        }
+        animate();
     }
 
-    trajectoryPath.innerHTML = `<path d="${pathData}" stroke="rgba(0,0,0,0.5)" stroke-width="2" fill="none" stroke-dasharray="5,5"/>`;
-}
+    function drawTrajectory() {
+        if (isFiring) return;
+        const angle = parseFloat(angleSlider.value);
+        const power = parseFloat(powerSlider.value) / 4;
+        const rad = angle * Math.PI / 180;
+        let vx = Math.cos(rad) * power;
+        let vy = -Math.sin(rad) * power;
+        let x = CANNON_ORIGIN_X_OFFSET;
+        let y = gameWorld.clientHeight - CANNON_ORIGIN_Y_OFFSET;
+        const groundLevel = gameWorld.clientHeight - 50;
 
-function updateUI() {
-    // Update labels
-    angleValue.textContent = angleSlider.value;
-    powerValue.textContent = powerSlider.value;
-    
-    // Update cannon angle
-    cannon.style.transform = `rotate(-${angleSlider.value}deg)`;
-    
-    // Update trajectory if guide is active
-    if (hasTrajectoryGuide && !isFiring) {
-        drawTrajectory();
-    } else {
-        trajectoryPath.innerHTML = '';
+        let pathData = `M ${x} ${y}`;
+        for (let t = 0; t < 200; t++) {
+            vy += GRAVITY;
+            x += vx;
+            y += vy;
+            if (y > groundLevel || x > window.innerWidth) break;
+            if (t % 2 === 0) { pathData += ` L ${x} ${y}`; }
+        }
+        trajectoryPath.innerHTML = `<path d="${pathData}" stroke="rgba(0,0,0,0.5)" stroke-width="2" fill="none" stroke-dasharray="5,5"/>`;
     }
-}
 
-function initGame() {
-    setupLevel(0);
-}
+    function updateUI() {
+        angleValue.textContent = angleSlider.value;
+        powerValue.textContent = powerSlider.value;
+        cannon.style.transform = `rotate(-${angleSlider.value}deg)`;
+        
+        if (hasTrajectoryGuide && !isFiring) {
+            drawTrajectory();
+        } else {
+            trajectoryPath.innerHTML = '';
+        }
+    }
 
-// Event Listeners
-angleSlider.addEventListener('input', updateUI);
-powerSlider.addEventListener('input', updateUI);
-fireBtn.addEventListener('click', fire);
+    function initGame() {
+        setupLevel(0);
+    }
 
-// Initial setup
-initGame();
+    angleSlider.addEventListener('input', updateUI);
+    powerSlider.addEventListener('input', updateUI);
+    fireBtn.addEventListener('click', fire);
 
+    initGame();
 </script>
 </body>
 </html>

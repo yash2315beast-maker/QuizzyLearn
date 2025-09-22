@@ -49,6 +49,14 @@
       color: white;
       transform: scale(1.05);
     }
+    /* --- NEW STYLE --- */
+    .grade-btn.unavailable {
+      opacity: 0.7;
+    }
+    .grade-btn.unavailable:hover {
+      /* Keep the hover effect so users know they can click for info */
+      opacity: 1;
+    }
     .back-btn {
       position: absolute;
       top: 20px;
@@ -71,47 +79,53 @@
   <h1 id="title">Select Your Grade</h1>
   <div>
     <button id="grade6_7" class="grade-btn" onclick="selectGrade('6-7')"></button>
-    <button id="grade8_10" class="grade-btn" onclick="selectGrade('8-10')"></button>
-    <button id="grade11_12" class="grade-btn" onclick="selectGrade('11-12')"></button>
+    <!-- Added 'unavailable' class for styling -->
+    <button id="grade8_10" class="grade-btn unavailable" onclick="selectGrade('8-10')"></button>
+    <button id="grade11_12" class="grade-btn unavailable" onclick="selectGrade('11-12')"></button>
   </div>
 
 <script>
-  document.addEventListener("DOMContentLoaded", () => {
-    let lang = localStorage.getItem("selectedLanguage");
-
-    const translations = {
+  // Defined translations in the global scope to be accessible by all functions
+  const translations = {
       english: {
         title: "Select Your Grade",
         grade6_7: "Grade 6–7",
         grade8_10: "Grade 8–10",
-        grade11_12: "Grade 11–12"
+        grade11_12: "Grade 11–12",
+        notAvailable: "Content for this grade is not yet available. Please check back later!"
       },
       hindi: {
         title: "अपनी कक्षा चुनें",
         grade6_7: "कक्षा 6–7",
         grade8_10: "कक्षा 8–10",
-        grade11_12: "कक्षा 11–12"
+        grade11_12: "कक्षा 11–12",
+        notAvailable: "इस कक्षा के लिए सामग्री अभी उपलब्ध नहीं है। कृपया बाद में जाँच करें!"
       },
       odia: {
         title: "ଶ୍ରେଣୀ ଚୟନ କରନ୍ତୁ",
         grade6_7: "ଶ୍ରେଣୀ 6–7",
         grade8_10: "ଶ୍ରେଣୀ 8–10",
-        grade11_12: "ଶ୍ରେଣୀ 11–12"
+        grade11_12: "ଶ୍ରେଣୀ 11–12",
+        notAvailable: "ଏହି ଶ୍ରେଣୀ ପାଇଁ ବିଷୟବସ୍ତୁ ଏପର୍ଯ୍ୟନ୍ତ ଉପଲବ୍ଧ ନାହିଁ। ଦୟାକରି ପରେ ଯାଞ୍ଚ କରନ୍ତୁ!"
       },
       telugu: {
         title: "మీ తరగతిని ఎంచుకోండి",
         grade6_7: "తరగతి 6–7",
         grade8_10: "తరగతి 8–10",
-        grade11_12: "తరగతి 11–12"
+        grade11_12: "తరగతి 11–12",
+        notAvailable: "ఈ తరగతికి సంబంధించిన కంటెంట్ ఇంకా అందుబాటులో లేదు. దయచేసి తర్వాత మళ్ళీ తనిఖీ చేయండి!"
       },
       marathi: {
         title: "आपला वर्ग निवडा",
         grade6_7: "इयत्ता ६–७",
         grade8_10: "इयत्ता ८–१०",
-        grade11_12: "इयत्ता ११–१२"
+        grade11_12: "इयत्ता ११–१२",
+        notAvailable: "या इयत्तेसाठी सामग्री अद्याप उपलब्ध नाही. कृपया नंतर तपासा!"
       }
     };
 
+  document.addEventListener("DOMContentLoaded", () => {
+    let lang = localStorage.getItem("selectedLanguage") || "english";
     let content = translations[lang] || translations["english"];
 
     document.getElementById("title").innerText = content.title;
@@ -120,9 +134,21 @@
     document.getElementById("grade11_12").innerText = content.grade11_12;
   });
 
+  // --- MODIFIED FUNCTION ---
   function selectGrade(grade) {
-    localStorage.setItem("selectedGrade", grade);
-    window.location.href = "subjects.html"; // redirect to subjects page
+    if (grade === '6-7') {
+      // This is the available grade, proceed as normal
+      localStorage.setItem("selectedGrade", grade);
+      window.location.href = "subjects.html";
+    } else {
+      // For any other grade, show the "not available" message
+      let lang = localStorage.getItem("selectedLanguage") || 'english';
+      // Get the correct translated message, defaulting to English if needed
+      let message = (translations[lang] && translations[lang].notAvailable) 
+                    ? translations[lang].notAvailable 
+                    : translations['english'].notAvailable;
+      alert(message);
+    }
   }
 </script>
 </body>
