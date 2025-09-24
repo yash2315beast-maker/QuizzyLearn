@@ -3,527 +3,542 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lingo Detectives: The Case of the Vanishing Verb</title>
+    <title>Grammar Guardian</title>
     <style>
-        /* --- General Styling & Theme (Desktop First) --- */
-        @import url('https://fonts.googleapis.com/css2?family=Special+Elite&family=Roboto:wght@400;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=MedievalSharp&family=Lato:wght@400;700&display=swap');
+
+        :root {
+            --sky-color: #87CEEB;
+            --ground-color: #556B2F;
+            --castle-color: #C0C0C0;
+            --ui-bg: #D2B48C;
+            --ui-border: #8B4513;
+            --text-color: #3a240a;
+            --correct-color: #28a745;
+            --incorrect-color: #dc3545;
+        }
+
+        * { box-sizing: border-box; }
 
         body {
-            font-family: 'Roboto', sans-serif;
+            font-family: 'Lato', sans-serif;
             background-color: #333;
-            color: #f0f0f0;
+            margin: 0;
+            height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
-            min-height: 100vh;
-            margin: 0;
-            padding: 20px;
-            box-sizing: border-box;
-        }
-
-        .game-container {
-            background-color: #444;
-            border: 5px solid #222;
-            border-radius: 15px;
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.7);
-            width: 100%;
-            max-width: 900px; /* Increased max-width for desktop */
             overflow: hidden;
         }
 
-        .game-header {
-            background-color: #2a2a2a;
-            padding: 20px;
-            text-align: center;
-            border-bottom: 3px solid #f9d71c;
-        }
-
-        .game-header h1 {
-            margin: 0;
-            font-family: 'Special Elite', cursive;
-            color: #f9d71c;
-            font-size: 2.2em;
-        }
-
-        .game-body {
+        /* --- NEW: Back Button --- */
+        .back-btn {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 101; /* Higher than modal overlay */
+            background: var(--ui-bg);
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            border: 3px solid var(--ui-border);
+            color: var(--ui-border);
+            font-size: 1.8rem;
+            text-decoration: none;
             display: flex;
-        }
-
-        .main-content {
-            flex-grow: 1;
-            padding: 25px;
-        }
-
-        .evidence-board {
-            flex-basis: 280px; /* Slightly wider */
-            flex-shrink: 0; /* Prevent from shrinking */
-            background-color: #5a4a3a;
-            border-left: 3px solid #f9d71c;
-            padding: 20px;
-            font-family: 'Special Elite', cursive;
-        }
-
-        .evidence-board h2 {
-            margin-top: 0;
-            color: #f9d71c;
-            border-bottom: 1px dashed #ccc;
-            padding-bottom: 10px;
-        }
-
-        .evidence-item {
-            background-color: #fdf5e6;
-            color: #333;
-            padding: 10px;
-            margin-bottom: 10px;
-            border-radius: 3px;
-            box-shadow: 2px 2px 5px rgba(0,0,0,0.3);
-            font-size: 0.9em;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
             transition: all 0.3s ease;
         }
-        .evidence-item.locked {
-            color: #999;
-            background-color: #6c5b4b;
+        .back-btn:hover {
+            background: var(--ui-border);
+            color: white;
+            transform: scale(1.1);
         }
 
-        /* --- Screens & Clues Styling --- */
-        .screen { display: none; }
-        .screen.active { display: block; }
-
-        h2 {
-            font-family: 'Special Elite', cursive;
-            color: #f9d71c;
-        }
-
-        p, label { line-height: 1.6; }
-
-        .clue-text {
-            background-color: #3a3a3a;
-            border-left: 4px solid #f9d71c;
-            padding: 15px;
-            margin: 20px 0;
-            font-style: italic;
-            border-radius: 0 5px 5px 0;
-        }
-
-        input[type="text"], input[type="number"], textarea, select {
+        #game-container {
             width: 100%;
-            padding: 12px;
-            margin-top: 5px;
-            background-color: #555;
-            border: 1px solid #777;
-            color: #fff;
-            border-radius: 5px;
-            box-sizing: border-box;
-            font-size: 1em;
+            height: 100%;
+            max-width: 1000px;
+            max-height: 750px;
+            background-color: var(--sky-color);
+            border: 5px solid var(--ui-border);
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+            display: flex;
+            flex-direction: column;
+            position: relative;
         }
 
-        textarea {
-            resize: vertical;
-            height: 100px;
-            font-family: 'Special Elite', cursive;
+        /* --- Game Visuals --- */
+        #game-screen {
+            flex-grow: 1;
+            position: relative;
+            background: linear-gradient(to bottom, var(--sky-color) 70%, var(--ground-color) 70%);
+            overflow: hidden;
         }
         
-        button {
-            background-color: #f9d71c;
-            color: #333;
-            border: none;
-            padding: 12px 25px;
-            font-size: 1em;
-            font-weight: bold;
+        #castle {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 150px;
+            height: 200px;
+            background-color: var(--castle-color);
+            border: 3px solid #555;
+            clip-path: polygon(0 100%, 0 20%, 20% 20%, 20% 0, 80% 0, 80% 20%, 100% 20%, 100% 100%);
+        }
+        
+        #guardian {
+            position: absolute;
+            bottom: 150px;
+            left: 60px;
+            font-size: 50px;
+        }
+
+        #ui-top-bar {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            right: 10px;
+            display: flex;
+            justify-content: space-between;
+            font-family: 'MedievalSharp', cursive;
+            font-size: 1.5em;
+            color: white;
+            text-shadow: 2px 2px 3px #000;
+        }
+        #castle-health span {
+            color: #ff4d4d;
+            font-size: 1.2em;
+        }
+
+        .goblin {
+            position: absolute;
+            bottom: 20px;
+            right: -80px; /* Start off-screen */
+            font-size: 50px;
+            transition: right 1s linear;
+        }
+        
+        .arrow {
+            position: absolute;
+            font-size: 30px;
+            color: #8B4513;
+            pointer-events: none;
+            z-index: 10;
+        }
+        
+        /* --- Quiz Panel --- */
+        #quiz-panel {
+            height: 250px;
+            background-color: var(--ui-bg);
+            border-top: 5px solid var(--ui-border);
+            padding: 20px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        #question-text {
+            font-size: 1.3em;
+            font-weight: 700;
+            color: var(--text-color);
+            margin: 0 0 15px 0;
+            min-height: 50px;
+        }
+        
+        #answer-options {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .answer-btn {
+            padding: 15px;
+            font-size: 1.1em;
+            background-color: #f5deb3;
+            border: 2px solid var(--ui-border);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .answer-btn:hover:not(:disabled) {
+            background-color: var(--ui-border);
+            color: white;
+        }
+        .answer-btn:disabled {
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+        .answer-btn.correct { background-color: var(--correct-color); color: white; }
+        .answer-btn.incorrect { background-color: var(--incorrect-color); color: white; }
+
+        /* --- Modals --- */
+        .modal-overlay {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+        }
+        .modal-content {
+            background: var(--ui-bg);
+            border: 3px solid var(--ui-border);
+            padding: 30px;
+            border-radius: 10px;
+            text-align: center;
+            max-width: 500px;
+            width: 90%;
+        }
+        .modal-content h2 {
+            font-family: 'MedievalSharp', cursive;
+            font-size: 2.5em;
+            margin: 0 0 15px 0;
+        }
+        .modal-btn {
+            font-family: 'MedievalSharp', cursive;
+            font-size: 1.5em;
+            padding: 10px 25px;
+            background: var(--ground-color);
+            color: white;
+            border: 2px solid var(--ui-border);
             border-radius: 5px;
             cursor: pointer;
-            transition: background-color 0.2s;
             margin-top: 20px;
-            width: 100%;
-            max-width: 300px;
-            display: block;
-            margin-left: auto;
-            margin-right: auto;
         }
 
-        button:hover { background-color: #e8c60a; }
-
-        .feedback {
-            margin-top: 15px;
-            padding: 10px;
-            border-radius: 5px;
-            font-weight: bold;
-            display: none;
-        }
-        .feedback.correct { background-color: #28a745; color: white; }
-        .feedback.incorrect { background-color: #dc3545; color: white; }
-
-        /* --- Clue-Specific Styling --- */
-        .parts-of-speech-question {
-            margin-bottom: 15px;
-        }
-        .parts-of-speech-question strong {
-            display: inline-block;
-            width: 80px;
-        }
-        .parts-of-speech-question label {
-            margin-right: 15px;
-            cursor: pointer;
+        /* --- Responsive Design --- */
+        @media (max-width: 600px) {
+            /* NEW: Adjust back button for small screens */
+            .back-btn {
+                width: 45px;
+                height: 45px;
+                font-size: 1.5rem;
+                top: 15px;
+                left: 15px;
+            }
+            #castle { width: 100px; height: 150px; }
+            #guardian { font-size: 40px; bottom: 110px; left: 35px; }
+            .goblin { font-size: 40px; bottom: 10px; }
+            #ui-top-bar { font-size: 1.1em; padding-left: 45px; } /* Add padding to not overlap back button */
+            #quiz-panel { height: auto; padding: 15px; }
+            #question-text { font-size: 1.1em; }
+            .answer-btn { padding: 12px; font-size: 1em; }
         }
 
-        /* ============================================= */
-        /* --- MOBILE RESPONSIVE STYLES --- */
-        /* ============================================= */
-        @media (max-width: 768px) {
-            body {
-                padding: 0;
-                align-items: flex-start; /* Align container to top */
-            }
-
-            .game-container {
-                border-radius: 0;
-                border: none;
-                min-height: 100vh;
-            }
-
-            .game-header h1 {
-                font-size: 1.6em; /* Smaller title */
-            }
-
-            .game-body {
-                flex-direction: column; /* Stack main content and evidence board */
-            }
-
-            .main-content {
-                padding: 20px; /* Reduced padding */
-            }
-
-            .evidence-board {
-                border-left: none; /* Remove side border */
-                border-top: 3px solid #f9d71c; /* Add top border */
-                padding: 20px;
-            }
-
-            button {
-                padding: 15px 20px; /* Larger tap target */
-                width: 100%; /* Full width button */
-            }
-
-            /* Stack radio buttons for easier tapping in Clue 2 */
-            .parts-of-speech-question {
-                border: 1px solid #555;
-                padding: 10px;
-                border-radius: 5px;
-            }
-            .parts-of-speech-question strong {
-                display: block;
-                margin-bottom: 10px;
-                font-size: 1.1em;
-            }
-            .parts-of-speech-question label {
-                display: block; /* Each option on a new line */
-                margin-bottom: 10px;
-                padding: 10px;
-                background-color: #3a3a3a;
-                border-radius: 5px;
-            }
-             .parts-of-speech-question label:last-child {
-                margin-bottom: 0;
-            }
-        }
     </style>
 </head>
 <body>
+    <!-- ADDED: Back button link. Change href to your menu page -->
+    <a href="../subjects.html" class="back-btn" aria-label="Go Back">&#8592;</a>
 
-    <div class="game-container">
-        <header class="game-header">
-            <h1>Lingo Detectives</h1>
-        </header>
-
-        <div class="game-body">
-            <div class="main-content">
-
-                <!-- SCREEN 1: INTRO -->
-                <div id="intro-screen" class="screen active">
-                    <h2>The Case of the Vanishing Verb</h2>
-                    <p>Agents, we have a crisis! The famous author, Ms. Lexi Khan, was about to finish her new novel when the villainous "Phantom Phraser" broke in and stole the <strong>Master Verb</strong> from her story! The entire book is now a collection of lifeless descriptions. Without action, the story is ruined!</p>
-                    <p>The Phantom has left a trail of linguistic puzzles. It's up to you, our Lingo Detectives, to solve the clues and save the story!</p>
-                    <button id="start-btn">Start Investigation</button>
-                </div>
-
-                <!-- SCREEN 2: CLUE 1 -->
-                <div id="clue1-screen" class="screen">
-                    <h2>Clue #1: The Ransom Note</h2>
-                    <p>You find a hastily written note left at the scene. It's filled with punctuation and capitalization errors. To crack this clue, you must count how many corrections are needed.</p>
-                    <div class="clue-text">
-                        youll never find the verb i left it somewhere dark and quiet somewhere with endless stories its protected by a silent guardian
-                    </div>
-                    <label for="clue1-answer">How many errors did you find?</label>
-                    <input type="number" id="clue1-answer" placeholder="Enter a number">
-                    <button onclick="checkClue1()">Submit Answer</button>
-                    <div id="clue1-feedback" class="feedback"></div>
-                </div>
-
-                <!-- SCREEN 3: CLUE 2 -->
-                <div id="clue2-screen" class="screen">
-                    <h2>Clue #2: The Witness Statement</h2>
-                    <p>A witness saw the Phraser fleeing. Identify the part of speech for each highlighted word in their statement to get a description of the suspect.</p>
-                    <div id="clue2-form">
-                        <div class="parts-of-speech-question">
-                            <strong>shadowy</strong>
-                            <label><input type="radio" name="word1" value="adj"> Adjective</label>
-                            <label><input type="radio" name="word1" value="adv"> Adverb</label>
-                            <label><input type="radio" name="word1" value="n"> Noun</label>
-                        </div>
-                        <div class="parts-of-speech-question">
-                            <strong>quickly</strong>
-                            <label><input type="radio" name="word2" value="adj"> Adjective</label>
-                            <label><input type="radio" name="word2" value="adv"> Adverb</label>
-                            <label><input type="radio" name="word2" value="v"> Verb</label>
-                        </div>
-                        <div class="parts-of-speech-question">
-                            <strong>satchel</strong>
-                            <label><input type="radio" name="word3" value="adj"> Adjective</label>
-                            <label><input type="radio" name="word3" value="v"> Verb</label>
-                            <label><input type="radio" name="word3" value="n"> Noun</label>
-                        </div>
-                        <div class="parts-of-speech-question">
-                            <strong>howled</strong>
-                            <label><input type="radio" name="word4" value="n"> Noun</label>
-                            <label><input type="radio" name="word4" value="adv"> Adverb</label>
-                            <label><input type="radio" name="word4" value="v"> Verb</label>
-                        </div>
-                    </div>
-                    <button onclick="checkClue2()">Submit Answer</button>
-                    <div id="clue2-feedback" class="feedback"></div>
-                </div>
-
-                <!-- SCREEN 4: CLUE 3 -->
-                <div id="clue3-screen" class="screen">
-                    <h2>Clue #3: The Synonym Cipher</h2>
-                    <p>The Phraser left a coded message on a library computer. Replace the italicized words with a common synonym to reveal the next piece of evidence.</p>
-                     <div class="clue-text">
-                        "I did not <i>conceal</i> the verb. I simply <i>archived</i> it in a place where knowledge is <i>preserved</i>."
-                    </div>
-                    <label for="clue3-answer1">Synonym for "conceal":</label>
-                    <input type="text" id="clue3-answer1">
-                    <label for="clue3-answer2">Synonym for "archived":</label>
-                    <input type="text" id="clue3-answer2">
-                    <label for="clue3-answer3">Synonym for "preserved":</label>
-                    <input type="text" id="clue3-answer3">
-                    <button onclick="checkClue3()">Submit Answer</button>
-                    <div id="clue3-feedback" class="feedback"></div>
-                </div>
-                
-                <!-- SCREEN 5: CLUE 4 -->
-                <div id="clue4-screen" class="screen">
-                    <h2>Clue #4: The Figurative Footprints</h2>
-                    <p>A note is found on the floor, filled with figurative language. Identify the literary devices to pinpoint the verb's hiding place.</p>
-                     <div class="clue-text">
-                        "The library was a sleeping giant. The secret is held by a spine that never bends, in a case that is a glass cage."
-                    </div>
-                    <p><strong>"The library was a sleeping giant"</strong> is an example of:</p>
-                    <label><input type="radio" name="fig1" value="simile"> Simile</label>
-                    <label><input type="radio" name="fig1" value="metaphor"> Metaphor</label>
-                    <label><input type="radio" name="fig1" value="personification"> Personification</label>
-                    
-                    <p style="margin-top: 15px;"><strong>"...a spine that never bends..."</strong> is an example of (and a pun!):</p>
-                    <label><input type="radio" name="fig2" value="simile"> Simile</label>
-                    <label><input type="radio" name="fig2" value="metaphor"> Metaphor</label>
-                    <label><input type="radio" name="fig2" value="personification"> Personification</label>
-                    <button onclick="checkClue4()">Submit Answer</button>
-                    <div id="clue4-feedback" class="feedback"></div>
-                </div>
-                
-                <!-- SCREEN 6: CLUE 5 -->
-                <div id="clue5-screen" class="screen">
-                    <h2>Clue #5: The Final Accusation</h2>
-                    <p>You find one last jumbled note. Correctly rewrite the sentence with proper capitalization and structure to reveal the villain's identity and motive!</p>
-                     <div class="clue-text">
-                        the dictionary stole professor preposition because he believes nouns are more important
-                    </div>
-                    <textarea id="clue5-answer" placeholder="Rewrite the sentence correctly here..."></textarea>
-                    <button onclick="checkClue5()">Submit Answer</button>
-                    <div id="clue5-feedback" class="feedback"></div>
-                </div>
-                
-                <!-- SCREEN 7: FINAL REPORT -->
-                <div id="final-report-screen" class="screen">
-                    <h2>Final Report</h2>
-                    <p>You've gathered all the evidence, Detective! Now it's time to solve the case. Fill out your final report to catch the Phantom Phraser.</p>
-                    <div>
-                        <label for="final-suspect"><strong>The Phantom Phraser is:</strong></label>
-                        <select id="final-suspect">
-                            <option value="">-- Select a Suspect --</option>
-                            <option value="Connie Conjunction">Connie Conjunction</option>
-                            <option value="Professor Preposition">Professor Preposition</option>
-                            <option value="Madam Metaphor">Madam Metaphor</option>
-                        </select>
-                    </div>
-                    <div style="margin-top: 15px;">
-                        <label for="final-location"><strong>The verb is hidden in:</strong></label>
-                        <select id="final-location">
-                             <option value="">-- Select a Location --</option>
-                            <option value="The janitor's closet">The janitor's closet</option>
-                            <option value="An old dictionary in a display case">An old dictionary in a display case</option>
-                            <option value="The author's laptop">The author's laptop</option>
-                        </select>
-                    </div>
-                    <button onclick="checkFinalReport()">Solve the Case!</button>
-                    <div id="final-feedback" class="feedback"></div>
-                </div>
-                
-                <!-- SCREEN 8: WIN SCREEN -->
-                <div id="win-screen" class="screen">
-                    <h2>Case Closed!</h2>
-                    <p>Congratulations, Lingo Detective! You correctly identified <strong>Professor Preposition</strong> as the Phantom Phraser. You found the Master Verb hidden in the dictionary and discovered his motive was that he believed nouns were more important than verbs.</p>
-                    <p>Thanks to you, Ms. Lexi Khan's story is saved! You are a master of the English language!</p>
-                    <button onclick="window.location.reload()">Play Again</button>
-                </div>
-
+    <div id="game-container">
+        <div id="game-screen">
+            <div id="ui-top-bar">
+                <div id="castle-health">SHIELDS: <span>🛡️🛡️🛡️</span></div>
+                <div id="wave-display">WAVE: 1</div>
             </div>
+            <div id="castle"></div>
+            <div id="guardian">🏹</div>
+        </div>
 
-            <aside class="evidence-board">
-                <h2>Evidence Board</h2>
-                <div id="evidence1" class="evidence-item locked">Evidence #1: Location Clue</div>
-                <div id="evidence2" class="evidence-item locked">Evidence #2: Suspect Profile</div>
-                <div id="evidence3" class="evidence-item locked">Evidence #3: Location Clue</div>
-                <div id="evidence4" class="evidence-item locked">Evidence #4: Hiding Place</div>
-                <div id="evidence5" class="evidence-item locked">Evidence #5: Motive</div>
-            </aside>
+        <div id="quiz-panel">
+            <div id="question-text">Defend the castle!</div>
+            <div id="answer-options">
+                <button class="answer-btn" disabled></button>
+                <button class="answer-btn" disabled></button>
+                <button class="answer-btn" disabled></button>
+                <button class="answer-btn" disabled></button>
+            </div>
+        </div>
+
+        <!-- Modals -->
+        <div id="start-modal" class="modal-overlay">
+            <div class="modal-content">
+                <h2>Grammar Guardian</h2>
+                <p>The Gobbledygook Goblins are attacking! Use your grammar knowledge to defend the castle. Answer questions correctly to fire your arrows!</p>
+                <button id="start-game-btn" class="modal-btn">Defend the Castle!</button>
+            </div>
+        </div>
+        <div id="end-modal" class="modal-overlay" style="display: none;">
+            <div class="modal-content">
+                <h2 id="end-message">Victory!</h2>
+                <p id="end-score">Your score: 0</p>
+                <button id="play-again-btn" class="modal-btn">Play Again</button>
+            </div>
         </div>
     </div>
 
     <script>
-        // The JavaScript does not need to be changed for responsiveness.
-        // It handles game logic, which is independent of the visual layout.
+        document.addEventListener('DOMContentLoaded', () => {
 
-        const screens = document.querySelectorAll('.screen');
-        const startBtn = document.getElementById('start-btn');
+            // --- 1. GAME DATA ---
+            const QUESTIONS = [
+                { q: "Which word is the VERB? 'The cat swiftly leaped.'", options: ["The", "cat", "swiftly", "leaped"], answer: 3 },
+                { q: "Choose the correct punctuation: 'Lets eat Grandma!'", options: ["Lets' eat, Grandma!", "Let's eat, Grandma!", "Lets eat, Grandma.", "Let's eat Grandma!"], answer: 1 },
+                { q: "Is this a complete sentence? 'Running through the park.'", options: ["Yes, it is.", "No, it's a fragment."], answer: 1 },
+                { q: "Which word is the ADJECTIVE? 'The big, red ball bounced.'", options: ["ball", "bounced", "red", "The"], answer: 2 },
+                { q: "Choose the correct word: '____ going to the park.'", options: ["Their", "There", "They're"], answer: 2 },
+                { q: "Which sentence has the correct subject-verb agreement?", options: ["The dogs barks loudly.", "The dog bark loudly.", "The dogs bark loudly."], answer: 2 },
+                { q: "Which word is a NOUN? 'She showed great courage.'", options: ["She", "showed", "great", "courage"], answer: 3 },
+                { q: "Is this a run-on sentence? 'I like pizza it is my favorite food.'", options: ["Yes, it is.", "No, it is not."], answer: 0 },
+            ];
 
-        const evidenceItems = {
-            1: document.getElementById('evidence1'),
-            2: document.getElementById('evidence2'),
-            3: document.getElementById('evidence3'),
-            4: document.getElementById('evidence4'),
-            5: document.getElementById('evidence5'),
-        };
+            const WAVES = [
+                { enemies: 3, enemyHealth: 1 },
+                { enemies: 4, enemyHealth: 1 },
+                { enemies: 5, enemyHealth: 2 },
+            ];
 
-        function showScreen(screenId) {
-            screens.forEach(screen => screen.classList.remove('active'));
-            document.getElementById(screenId).classList.add('active');
-            window.scrollTo(0, 0); // Scroll to top on screen change for mobile
-        }
-        
-        function unlockEvidence(clueNumber, text) {
-            const item = evidenceItems[clueNumber];
-            item.classList.remove('locked');
-            item.textContent = text;
-        }
+            // --- 2. DOM REFERENCES ---
+            const gameScreen = document.getElementById('game-screen');
+            const castleHealthDisplay = document.getElementById('castle-health').querySelector('span');
+            const waveDisplay = document.getElementById('wave-display');
+            const questionText = document.getElementById('question-text');
+            const answerButtons = document.querySelectorAll('.answer-btn');
+            
+            const startModal = document.getElementById('start-modal');
+            const endModal = document.getElementById('end-modal');
+            const startGameBtn = document.getElementById('start-game-btn');
+            const playAgainBtn = document.getElementById('play-again-btn');
+            const endMessage = document.getElementById('end-message');
+            const endScore = document.getElementById('end-score');
 
-        function showFeedback(feedbackEl, message, isCorrect) {
-            feedbackEl.textContent = message;
-            feedbackEl.className = 'feedback';
-            feedbackEl.classList.add(isCorrect ? 'correct' : 'incorrect');
-            feedbackEl.style.display = 'block';
-        }
+            // --- 3. GAME STATE ---
+            let gameState = {};
 
-        function advanceToNextClue(nextScreenId) {
-            setTimeout(() => {
-                showScreen(nextScreenId);
-            }, 2000);
-        }
+            function resetGameState() {
+                gameState = {
+                    score: 0,
+                    castleHealth: 3,
+                    currentWave: 0,
+                    enemiesRemainingInWave: 0,
+                    totalEnemiesInWave: 0,
+                    activeEnemies: [],
+                    isGameOver: false,
+                    isQuestionActive: false,
+                    availableQuestions: [...QUESTIONS]
+                };
+            }
 
-        startBtn.addEventListener('click', () => {
-            showScreen('clue1-screen');
+            // --- 4. CORE GAME LOGIC ---
+            function startGame() {
+                resetGameState();
+                startModal.style.display = 'none';
+                endModal.style.display = 'none';
+                updateUI();
+                startNextWave();
+            }
+
+            function startNextWave() {
+                if (gameState.isGameOver) return;
+
+                gameState.currentWave++;
+                if (gameState.currentWave > WAVES.length) {
+                    endGame(true); // Player wins
+                    return;
+                }
+                
+                waveDisplay.textContent = `WAVE: ${gameState.currentWave}`;
+                const waveData = WAVES[gameState.currentWave - 1];
+                gameState.totalEnemiesInWave = waveData.enemies;
+                gameState.enemiesRemainingInWave = waveData.enemies;
+
+                for (let i = 0; i < waveData.enemies; i++) {
+                    setTimeout(() => spawnEnemy(waveData.enemyHealth), i * 2000); // Stagger spawns
+                }
+            }
+            
+            function spawnEnemy(health) {
+                if (gameState.isGameOver) return;
+
+                const enemy = document.createElement('div');
+                enemy.className = 'goblin';
+                enemy.textContent = '👺';
+                enemy.dataset.health = health;
+                enemy.dataset.position = 0; // 0 = start, 100 = castle
+                gameScreen.appendChild(enemy);
+                gameState.activeEnemies.push(enemy);
+
+                if (!gameState.isQuestionActive) {
+                    displayQuestionForEnemy(enemy);
+                }
+            }
+
+            function displayQuestionForEnemy(enemy) {
+                if (gameState.isGameOver || !enemy) return;
+                
+                gameState.isQuestionActive = true;
+                
+                if (gameState.availableQuestions.length === 0) {
+                    gameState.availableQuestions = [...QUESTIONS]; // Replenish questions
+                }
+                
+                const qIndex = Math.floor(Math.random() * gameState.availableQuestions.length);
+                const question = gameState.availableQuestions.splice(qIndex, 1)[0];
+                
+                questionText.textContent = question.q;
+                
+                answerButtons.forEach((btn, index) => {
+                    if (question.options[index]) {
+                        btn.textContent = question.options[index];
+                        btn.style.display = 'block';
+                        btn.disabled = false;
+                        btn.className = 'answer-btn';
+                        btn.onclick = () => checkAnswer(index, question.answer, enemy);
+                    } else {
+                        btn.style.display = 'none';
+                    }
+                });
+            }
+
+            function checkAnswer(selectedIndex, correctIndex, enemy) {
+                if (!gameState.isQuestionActive) return;
+                
+                gameState.isQuestionActive = false;
+                answerButtons.forEach(btn => btn.disabled = true);
+                
+                const isCorrect = selectedIndex === correctIndex;
+
+                answerButtons[selectedIndex].classList.add(isCorrect ? 'correct' : 'incorrect');
+                if(!isCorrect && answerButtons[correctIndex]) {
+                    answerButtons[correctIndex].classList.add('correct');
+                }
+
+                if (isCorrect) {
+                    playerAttack(enemy);
+                } else {
+                    enemyAdvance(enemy);
+                }
+                
+                setTimeout(prepareNextQuestion, 1500);
+            }
+
+            function playerAttack(enemy) {
+                fireArrow(enemy);
+                setTimeout(() => {
+                    if (gameScreen.contains(enemy)) {
+                        enemy.dataset.health--;
+                        if (enemy.dataset.health <= 0) {
+                            defeatEnemy(enemy);
+                        }
+                    }
+                }, 500);
+            }
+
+            function defeatEnemy(enemy) {
+                enemy.remove();
+                gameState.activeEnemies = gameState.activeEnemies.filter(e => e !== enemy);
+                gameState.enemiesRemainingInWave--;
+                gameState.score += 100;
+                updateUI();
+                
+                if (gameState.enemiesRemainingInWave <= 0) {
+                    questionText.textContent = `Wave ${gameState.currentWave} Cleared!`;
+                    setTimeout(startNextWave, 2000);
+                }
+            }
+
+            function enemyAdvance(enemy) {
+                if (!enemy || !gameScreen.contains(enemy)) return;
+
+                const newPosition = parseInt(enemy.dataset.position) + 25;
+                enemy.dataset.position = newPosition;
+                
+                const screenWidth = gameScreen.clientWidth;
+                const finalPos = 120;
+                const startPos = -80;
+                const totalMove = screenWidth - finalPos - Math.abs(startPos);
+                
+                enemy.style.right = `${(totalMove * (newPosition / 100)) + startPos}px`;
+                
+                if (newPosition >= 100) {
+                    damageCastle(enemy);
+                }
+            }
+            
+            function damageCastle(enemy) {
+                enemy.remove();
+                gameState.activeEnemies = gameState.activeEnemies.filter(e => e !== enemy);
+                gameState.enemiesRemainingInWave--;
+
+                gameState.castleHealth--;
+                updateUI();
+                
+                if (gameState.castleHealth <= 0) {
+                    endGame(false);
+                } else if (gameState.enemiesRemainingInWave <= 0) {
+                     questionText.textContent = `Wave ${gameState.currentWave} Cleared!`;
+                     setTimeout(startNextWave, 2000);
+                }
+            }
+
+            function prepareNextQuestion() {
+                if (gameState.isGameOver) return;
+                const nextEnemy = gameState.activeEnemies[0];
+                if (nextEnemy) {
+                    displayQuestionForEnemy(nextEnemy);
+                } else if (gameState.totalEnemiesInWave > 0 && gameState.enemiesRemainingInWave > 0) {
+                    questionText.textContent = 'Prepare for the next goblin!';
+                }
+            }
+
+            function endGame(didWin) {
+                gameState.isGameOver = true;
+                gameState.activeEnemies.forEach(e => e.remove());
+                gameState.activeEnemies = [];
+                
+                endMessage.textContent = didWin ? "VICTORY!" : "DEFEAT!";
+                endScore.textContent = `Your final score: ${gameState.score}`;
+                endModal.style.display = 'flex';
+            }
+
+            // --- 5. UI & ANIMATION ---
+            function updateUI() {
+                castleHealthDisplay.textContent = '🛡️'.repeat(Math.max(0, gameState.castleHealth));
+            }
+
+            function fireArrow(targetEnemy) {
+                const arrow = document.createElement('div');
+                arrow.className = 'arrow';
+                arrow.textContent = '→';
+                
+                const startX = 100;
+                const startY = gameScreen.clientHeight - 180;
+                
+                const enemyRect = targetEnemy.getBoundingClientRect();
+                const gameRect = gameScreen.getBoundingClientRect();
+                const endX = enemyRect.left - gameRect.left + (enemyRect.width / 2);
+                const endY = enemyRect.top - gameRect.top + (enemyRect.height / 2);
+                
+                arrow.style.left = `${startX}px`;
+                arrow.style.top = `${startY}px`;
+                
+                gameScreen.appendChild(arrow);
+                
+                arrow.animate([
+                    { left: `${startX}px`, top: `${startY}px` },
+                    { left: `${endX}px`, top: `${endY}px` }
+                ], {
+                    duration: 500,
+                    easing: 'ease-in'
+                }).onfinish = () => {
+                    arrow.remove();
+                };
+            }
+
+            // --- 6. EVENT LISTENERS ---
+            startGameBtn.addEventListener('click', startGame);
+            playAgainBtn.addEventListener('click', startGame);
         });
-        
-        function checkClue1() {
-            const answer = document.getElementById('clue1-answer').value;
-            const feedbackEl = document.getElementById('clue1-feedback');
-            // Errors: youll(1), i(2), quiet,(3), stories.(4) -> 4 errors
-            if (answer === '4') {
-                showFeedback(feedbackEl, 'Correct! The code points to a building with many stories.', true);
-                unlockEvidence(1, 'EVIDENCE #1: The crime took place in a building with "many stories" (like a library).');
-                advanceToNextClue('clue2-screen');
-            } else {
-                showFeedback(feedbackEl, 'Not quite. Re-read the note carefully for missing punctuation and capital letters.', false);
-            }
-        }
-
-        function checkClue2() {
-            const feedbackEl = document.getElementById('clue2-feedback');
-            const word1 = document.querySelector('input[name="word1"]:checked')?.value;
-            const word2 = document.querySelector('input[name="word2"]:checked')?.value;
-            const word3 = document.querySelector('input[name="word3"]:checked')?.value;
-            const word4 = document.querySelector('input[name="word4"]:checked')?.value;
-            
-            if (word1 === 'adj' && word2 === 'adv' && word3 === 'n' && word4 === 'v') {
-                showFeedback(feedbackEl, 'Excellent work! You\'ve got a description of the suspect.', true);
-                unlockEvidence(2, 'EVIDENCE #2: The suspect has a love for dramatic, descriptive words.');
-                advanceToNextClue('clue3-screen');
-            } else {
-                showFeedback(feedbackEl, 'One or more of those is incorrect. Review your parts of speech and try again.', false);
-            }
-        }
-
-        function checkClue3() {
-            const feedbackEl = document.getElementById('clue3-feedback');
-            const ans1 = document.getElementById('clue3-answer1').value.trim().toLowerCase();
-            const ans2 = document.getElementById('clue3-answer2').value.trim().toLowerCase();
-            const ans3 = document.getElementById('clue3-answer3').value.trim().toLowerCase();
-            
-            const validAns1 = ['hide', 'hid'];
-            const validAns2 = ['store', 'stored', 'filed'];
-            const validAns3 = ['kept', 'keep', 'saved'];
-
-            if (validAns1.includes(ans1) && validAns2.includes(ans2) && validAns3.includes(ans3)) {
-                 showFeedback(feedbackEl, 'Perfect! You cracked the code. The clue points to a place of storage or records.', true);
-                 unlockEvidence(3, 'EVIDENCE #3: The verb is in a place where old records are kept (archives/special collections).');
-                 advanceToNextClue('clue4-screen');
-            } else {
-                 showFeedback(feedbackEl, 'Those synonyms aren\'t quite right. Think of another word with a similar meaning.', false);
-            }
-        }
-        
-        function checkClue4() {
-            const feedbackEl = document.getElementById('clue4-feedback');
-            const fig1 = document.querySelector('input[name="fig1"]:checked')?.value;
-            const fig2 = document.querySelector('input[name="fig2"]:checked')?.value;
-            
-            if (fig1 === 'metaphor' && fig2 === 'personification') {
-                showFeedback(feedbackEl, 'Correct! A book\'s spine inside a display case... you\'ve found the hiding spot!', true);
-                unlockEvidence(4, 'EVIDENCE #4: The verb is hidden inside a book (with a "spine") in a display case.');
-                advanceToNextClue('clue5-screen');
-            } else {
-                showFeedback(feedbackEl, 'Not quite. Review the definitions of simile, metaphor, and personification.', false);
-            }
-        }
-        
-        function checkClue5() {
-            const feedbackEl = document.getElementById('clue5-feedback');
-            const answer = document.getElementById('clue5-answer').value.trim();
-            const correctAnswer = "Professor Preposition stole the dictionary because he believes nouns are more important.";
-            
-            if (answer === correctAnswer) {
-                showFeedback(feedbackEl, 'Brilliant! You unscrambled the confession and revealed the villain and their motive!', true);
-                unlockEvidence(5, 'EVIDENCE #5: Professor Preposition is the culprit. Motive: Thinks nouns are superior to verbs.');
-                advanceToNextClue('final-report-screen');
-            } else {
-                showFeedback(feedbackEl, 'Almost. Check your capitalization, punctuation, and word order.', false);
-            }
-        }
-
-        function checkFinalReport() {
-            const feedbackEl = document.getElementById('final-feedback');
-            const suspect = document.getElementById('final-suspect').value;
-            const location = document.getElementById('final-location').value;
-
-            const correctSuspect = "Professor Preposition";
-            const correctLocation = "An old dictionary in a display case";
-
-            if (suspect === correctSuspect && location === correctLocation) {
-                showFeedback(feedbackEl, 'Case closed! You are correct on all counts!', true);
-                advanceToNextClue('win-screen');
-            } else {
-                 showFeedback(feedbackEl, 'Your report has some inaccuracies. Review the evidence board and try again!', false);
-            }
-        }
     </script>
 </body>
 </html>

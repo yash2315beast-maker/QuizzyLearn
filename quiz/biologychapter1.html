@@ -2,193 +2,267 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Food Chain Puzzle Game</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bio-Luminescence: A Food Chain Puzzle</title>
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+  
+  <!-- SortableJS Library -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
+
   <style>
+    :root {
+      --bg-dark: #0d1b2a;
+      --bg-light: #173a48;
+      --card-bg: rgba(15, 25, 40, 0.7);
+      --cyan-glow: #00ffff;
+      --magenta-glow: #ff00ff;
+      --green-glow: #00ff7f;
+      --text-color: #e0fbfc;
+      --border-color: rgba(0, 255, 255, 0.2);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
     body {
       font-family: 'Poppins', sans-serif;
-      background: linear-gradient(135deg, #81c784, #4caf50);
-      margin: 0;
+      background: linear-gradient(135deg, var(--bg-dark), var(--bg-light));
+      color: var(--text-color);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
       padding: 20px;
-      color: white;
-      text-align: center;
+      overflow: hidden; /* Hide body scrollbars */
+    }
+
+    #background-canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -1;
     }
 
     #backBtn {
       position: fixed;
       top: 15px;
       left: 15px;
-      background-color: #feca57;
-      color: #222;
+      background-color: transparent;
+      color: var(--cyan-glow);
       font-weight: 700;
-      border: none;
-      border-radius: 6px;
+      border: 2px solid var(--cyan-glow);
+      border-radius: 8px;
       padding: 10px 18px;
       cursor: pointer;
       font-size: 1rem;
-      transition: background 0.3s;
+      transition: all 0.3s ease;
       z-index: 1000;
+      box-shadow: 0 0 10px var(--cyan-glow), inset 0 0 10px var(--cyan-glow);
     }
 
     #backBtn:hover {
-      background-color: #e6b642;
+      background-color: var(--cyan-glow);
+      color: var(--bg-dark);
+      transform: scale(1.05);
+    }
+
+    .game-card {
+      background: var(--card-bg);
+      border-radius: 20px;
+      padding: 30px 40px;
+      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37), 0 0 25px rgba(0, 255, 255, 0.2);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1px solid var(--border-color);
+      width: 100%;
+      max-width: 950px;
+      text-align: center;
+      z-index: 1;
     }
 
     h2 {
-      margin-bottom: 10px;
+      font-size: 2.5em;
+      margin-bottom: 5px;
+      color: #fff;
+      text-shadow: 0 0 7px #fff, 0 0 10px #fff, 0 0 21px #fff, 0 0 42px var(--cyan-glow), 0 0 82px var(--cyan-glow);
     }
 
-    #gameContainer {
-      max-width: 900px;
-      margin: 0 auto;
-      padding-top: 50px;
+    .instructions {
+      font-size: 1.1em;
+      margin-bottom: 30px;
+      opacity: 0.8;
     }
 
     #organisms {
       display: flex;
       justify-content: center;
       gap: 15px;
-      margin: 20px 0;
+      margin: 20px 0 40px 0;
       flex-wrap: wrap;
+      padding: 15px;
+      min-height: 80px;
+      border: 2px dashed var(--border-color);
+      border-radius: 12px;
+      transition: border-color 0.3s ease;
+    }
+    #organisms:hover {
+      border-color: rgba(0, 255, 255, 0.5);
     }
 
-    /* Always keep food chain in one line, no scrollbar */
     #chainSlotsContainer {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      gap: 5px;
-      margin: 20px 0;
-      flex-wrap: nowrap;      /* force one line */
-      overflow-x: hidden;     /* hide scrollbar */
-      padding-bottom: 10px;
+      overflow-x: auto;
+      padding-bottom: 15px;
     }
+    #chainSlotsContainer::-webkit-scrollbar { height: 8px; }
+    #chainSlotsContainer::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); border-radius: 4px; }
+    #chainSlotsContainer::-webkit-scrollbar-thumb { background: var(--cyan-glow); border-radius: 4px; }
 
     #chainSlots {
       display: flex;
-      gap: 5px;
-      flex-wrap: nowrap; /* keep slots + arrows in one line */
+      align-items: center;
+      gap: 10px;
+      min-width: max-content;
+      padding: 0 10px;
     }
 
-    .organism,
-    .slot {
-      background-color: #388e3c;
+    .organism {
+      background-color: rgba(0, 255, 255, 0.1);
       border-radius: 10px;
       padding: 15px 20px;
-      font-weight: 700;
-      font-size: 1.1em;
+      font-weight: 600;
       user-select: none;
       cursor: grab;
       color: #fff;
-      min-width: 100px;
       text-align: center;
       white-space: nowrap;
+      transition: all 0.3s ease;
+      border: 1px solid var(--border-color);
+      text-shadow: 0 0 5px rgba(255,255,255,0.7);
+      box-shadow: 0 0 8px rgba(0, 255, 255, 0.3), inset 0 0 8px rgba(0, 255, 255, 0.2);
     }
-
-    .organism.dragging {
-      opacity: 0.5;
-    }
-
+    
     .slot {
-      background-color: #a5d6a7;
-      color: #2e7d32;
-      min-height: 50px;
-      cursor: pointer;
+      background-color: transparent;
+      border-radius: 10px;
+      min-height: 56px;
+      min-width: 140px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 2px dashed var(--border-color);
+      transition: all 0.3s ease;
     }
-
-    .slot.filled {
-      background-color: #2e7d32;
-      color: white;
+    .slot:not(:empty) {
+      border-style: solid;
+      padding: 0;
+    }
+    .slot:hover {
+      border-color: var(--cyan-glow);
+    }
+    
+    .sortable-ghost { opacity: 0.4; }
+    .sortable-drag {
+      transform: scale(1.1);
+      box-shadow: 0 0 15px var(--cyan-glow), 0 0 30px var(--cyan-glow);
+      cursor: grabbing;
     }
 
     .arrow {
-      font-size: 2em;
-      color: #c8e6c9;
-      user-select: none;
+      font-size: 2.5em;
+      color: var(--text-color);
+      opacity: 0.6;
+      text-shadow: 0 0 10px var(--cyan-glow);
     }
 
-    #buttonsContainer {
-      margin-top: 10px;
-    }
+    #buttonsContainer { margin-top: 30px; display: flex; justify-content: center; flex-wrap: wrap; gap: 15px; }
 
     button {
-      background-color: #2e7d32;
-      border: none;
+      background: transparent;
+      border: 2px solid;
       padding: 12px 30px;
-      margin: 10px 10px 0 10px;
-      border-radius: 8px;
+      border-radius: 50px;
       font-weight: 700;
       font-size: 1.1em;
       color: white;
       cursor: pointer;
-      transition: background-color 0.3s;
+      transition: all 0.3s ease;
+      text-transform: uppercase;
+      letter-spacing: 1px;
     }
+    button:hover:not(:disabled) {
+      color: var(--bg-dark);
+      transform: translateY(-3px);
+      box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+    }
+    button:disabled { cursor: not-allowed; opacity: 0.4; }
 
-    button:hover {
-      background-color: #1b5e20;
-    }
+    #checkBtn { border-color: var(--green-glow); color: var(--green-glow); box-shadow: 0 0 10px var(--green-glow); }
+    #checkBtn:hover:not(:disabled) { background-color: var(--green-glow); }
+    #resetBtn { border-color: var(--magenta-glow); color: var(--magenta-glow); box-shadow: 0 0 10px var(--magenta-glow); }
+    #resetBtn:hover:not(:disabled) { background-color: var(--magenta-glow); }
+    #nextBtn, #restartBtn { border-color: var(--cyan-glow); color: var(--cyan-glow); box-shadow: 0 0 10px var(--cyan-glow); }
+    #nextBtn:hover:not(:disabled), #restartBtn:hover:not(:disabled) { background-color: var(--cyan-glow); }
+
 
     #message {
-      margin-top: 20px;
+      margin-top: 25px;
       font-size: 1.3em;
       font-weight: 700;
       min-height: 2em;
+      opacity: 0;
+      transform: translateY(10px);
+      transition: all 0.4s ease;
     }
+    #message.visible { opacity: 1; transform: translateY(0); }
+    #message.correct { color: var(--green-glow); text-shadow: 0 0 10px var(--green-glow); }
+    #message.incorrect { color: var(--magenta-glow); text-shadow: 0 0 10px var(--magenta-glow); }
 
-    #finalResult {
-      margin-top: 30px;
-      font-size: 1.5em;
-      font-weight: 700;
-      color: #fff59d;
-    }
-
-    #badge {
-      font-size: 2.5em;
-      margin-top: 15px;
-    }
-
-    #confetti {
-      position: fixed;
-      pointer-events: none;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      overflow: visible;
-      z-index: 9999;
-    }
-
-    .confetti-piece {
-      position: absolute;
-      animation: fall 3s linear forwards;
-      opacity: 0.8;
-    }
-
-    @keyframes fall {
-      to {
-        transform: translateY(100vh) rotate(360deg);
-        opacity: 0;
-      }
+    #finalResult { font-size: 1.5em; font-weight: 700; margin-top: 10px; color: #fff; }
+    #badge { font-size: 2.5em; margin-top: 15px; text-shadow: 0 0 15px var(--cyan-glow); }
+    
+    #confetti { position: fixed; pointer-events: none; top: 0; left: 0; width: 100%; height: 100%; z-index: 9999; }
+    .confetti-piece { position: absolute; animation: fall 4s linear forwards; opacity: 1; }
+    @keyframes fall { to { transform: translateY(100vh) rotate(720deg); opacity: 0; } }
+    
+    @media (max-width: 768px) {
+        body { padding: 15px; }
+        .game-card { padding: 20px; }
+        h2 { font-size: 1.8em; }
+        .instructions { font-size: 1em; }
+        .organism { font-size: 0.9em; padding: 12px 15px; }
+        .slot { min-width: 120px; min-height: 50px;}
+        button { padding: 10px 22px; font-size: 1em; }
     }
   </style>
 </head>
 <body>
 
+<canvas id="background-canvas"></canvas>
 <button id="backBtn" onclick="window.history.back()">Back</button>
 
-<h2>Food Chain Puzzle</h2>
-<p>Drag the organisms into the correct order of the food chain.</p>
+<div class="game-card">
+  <h2>Bio-Luminescence</h2>
+  <p class="instructions">Assemble the food chain by dragging organisms into place.</p>
 
-<div id="gameContainer">
   <div id="organisms"></div>
   <div id="chainSlotsContainer">
     <div id="chainSlots"></div>
   </div>
 
   <div id="buttonsContainer">
-    <button id="checkBtn">Check Answer</button>
+    <button id="checkBtn">Check</button>
     <button id="resetBtn">Reset</button>
-    <button id="nextBtn">Next</button>
+    <button id="nextBtn" style="display:none;">Next Chain</button>
     <button id="restartBtn" style="display:none;">Play Again</button>
   </div>
 
@@ -200,197 +274,206 @@
 <div id="confetti"></div>
 
 <script>
-  const questions = [
-    {
-      title: "Food Chain 1",
-      chain: ["grass", "grasshopper", "frog", "snake", "hawk"],
-    },
-    {
-      title: "Food Chain 2",
-      chain: ["phytoplankton", "zooplankton", "smallfish", "bigfish", "seal"],
-    },
-    {
-      title: "Food Chain 3",
-      chain: ["algae", "snail", "fish", "bird", "eagle"],
-    },
-    {
-      title: "Food Chain 4",
-      chain: ["leaves", "caterpillar", "bird", "cat", "human"],
-    },
-    {
-      title: "Food Chain 5",
-      chain: ["plankton", "shrimp", "crab", "octopus", "shark"],
+    // --- All Game Logic (from previous version) ---
+    const questions = [
+        { title: "Grassland Chain", chain: ["grass", "grasshopper", "frog", "snake", "hawk"] },
+        { title: "Oceanic Chain", chain: ["phytoplankton", "zooplankton", "smallfish", "bigfish", "seal"] },
+        { title: "Pond Chain", chain: ["algae", "snail", "fish", "bird", "eagle"] },
+        { title: "Forest Chain", chain: ["leaves", "caterpillar", "bird", "cat", "human"] },
+        { title: "Reef Chain", chain: ["plankton", "shrimp", "crab", "octopus", "shark"] }
+    ];
+    const names = { grass: "Grass", grasshopper: "Grasshopper", frog: "Frog", snake: "Snake", hawk: "Hawk", phytoplankton: "Phytoplankton", zooplankton: "Zooplankton", smallfish: "Small Fish", bigfish: "Big Fish", seal: "Seal", algae: "Algae", snail: "Snail", fish: "Fish", bird: "Bird", eagle: "Eagle", leaves: "Leaves", caterpillar: "Caterpillar", cat: "Cat", human: "Human", plankton: "Plankton", shrimp: "Shrimp", crab: "Crab", octopus: "Octopus", shark: "Shark" };
+    const organismsContainer = document.getElementById('organisms');
+    const chainSlots = document.getElementById('chainSlots');
+    const checkBtn = document.getElementById('checkBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const restartBtn = document.getElementById('restartBtn');
+    const message = document.getElementById('message');
+    const finalResult = document.getElementById('finalResult');
+    const badge = document.getElementById('badge');
+    const confettiContainer = document.getElementById('confetti');
+    let currentQuestionIndex = 0;
+    let score = 0;
+
+    function shuffle(array) { return array.sort(() => Math.random() - 0.5); }
+    function updateButtonStates() {
+        const allSlotsFilled = [...document.querySelectorAll('.slot')].every(slot => slot.children.length > 0);
+        checkBtn.disabled = !allSlotsFilled;
     }
-  ];
-
-  const names = {
-    grass: "Grass", grasshopper: "Grasshopper", frog: "Frog", snake: "Snake", hawk: "Hawk",
-    phytoplankton: "Phytoplankton", zooplankton: "Zooplankton", smallfish: "Small Fish",
-    bigfish: "Big Fish", seal: "Seal", algae: "Algae", snail: "Snail", fish: "Fish",
-    bird: "Bird", eagle: "Eagle", leaves: "Leaves", caterpillar: "Caterpillar", cat: "Cat",
-    human: "Human", plankton: "Plankton", shrimp: "Shrimp", crab: "Crab", octopus: "Octopus",
-    shark: "Shark"
-  };
-
-  const organismsContainer = document.getElementById('organisms');
-  const chainSlots = document.getElementById('chainSlots');
-  const checkBtn = document.getElementById('checkBtn');
-  const resetBtn = document.getElementById('resetBtn');
-  const nextBtn = document.getElementById('nextBtn');
-  const restartBtn = document.getElementById('restartBtn');
-  const message = document.getElementById('message');
-  const finalResult = document.getElementById('finalResult');
-  const badge = document.getElementById('badge');
-  const confettiContainer = document.getElementById('confetti');
-
-  let currentQuestionIndex = 0;
-  let score = 0;
-  let dragged = null;
-
-  function shuffle(array) {
-    return array.sort(() => Math.random() - 0.5);
-  }
-
-  function initGame() {
-    message.textContent = "";
-    finalResult.textContent = "";
-    badge.textContent = "";
-    organismsContainer.innerHTML = "";
-    chainSlots.innerHTML = "";
-    dragged = null;
-
-    const question = questions[currentQuestionIndex];
-    document.querySelector('h2').textContent = question.title;
-
-    const shuffled = shuffle([...question.chain]);
-    shuffled.forEach(id => {
-      const div = document.createElement('div');
-      div.className = 'organism';
-      div.setAttribute('draggable', true);
-      div.setAttribute('data-id', id);
-      div.textContent = names[id];
-      div.addEventListener('dragstart', dragStart);
-      div.addEventListener('dragend', dragEnd);
-      organismsContainer.appendChild(div);
-    });
-
-    question.chain.forEach((_, i) => {
-      const slot = document.createElement('div');
-      slot.className = 'slot';
-      slot.addEventListener('dragover', e => e.preventDefault());
-      slot.addEventListener('drop', drop);
-      slot.addEventListener('click', () => {
-        if(slot.firstChild) {
-          organismsContainer.appendChild(slot.firstChild);
-          slot.classList.remove('filled');
+    function initGame() {
+        message.textContent = "";
+        message.className = 'message';
+        finalResult.textContent = "";
+        badge.textContent = "";
+        organismsContainer.innerHTML = "";
+        chainSlots.innerHTML = "";
+        const question = questions[currentQuestionIndex];
+        document.querySelector('h2').textContent = question.title;
+        const shuffled = shuffle([...question.chain]);
+        shuffled.forEach(id => {
+            const div = document.createElement('div');
+            div.className = 'organism';
+            div.setAttribute('data-id', id);
+            div.textContent = names[id];
+            organismsContainer.appendChild(div);
+        });
+        question.chain.forEach((_, i) => {
+            const slot = document.createElement('div');
+            slot.className = 'slot';
+            chainSlots.appendChild(slot);
+            if (i < question.chain.length - 1) {
+                const arrow = document.createElement('div');
+                arrow.className = 'arrow';
+                arrow.textContent = '→';
+                chainSlots.appendChild(arrow);
+            }
+        });
+        const sharedOptions = { group: 'foodchain', animation: 150, ghostClass: 'sortable-ghost', dragClass: 'sortable-drag', onEnd: updateButtonStates, };
+        new Sortable(organismsContainer, sharedOptions);
+        document.querySelectorAll('.slot').forEach(slot => new Sortable(slot, { ...sharedOptions, emptyInsertThreshold: 50 }));
+        checkBtn.style.display = 'inline-block';
+        resetBtn.style.display = 'inline-block';
+        nextBtn.style.display = 'none';
+        restartBtn.style.display = 'none';
+        updateButtonStates();
+    }
+    checkBtn.onclick = () => {
+        const slots = document.querySelectorAll('.slot');
+        const question = questions[currentQuestionIndex];
+        let isCorrect = true;
+        slots.forEach((slot, i) => {
+            const id = slot.firstChild?.getAttribute('data-id');
+            if (id !== question.chain[i]) { isCorrect = false; }
+        });
+        message.classList.add('visible');
+        if (isCorrect) {
+            message.textContent = "✅ Correct! Chain complete.";
+            message.className = 'message visible correct';
+            score++;
+            checkBtn.style.display = 'none';
+            resetBtn.style.display = 'none';
+            nextBtn.style.display = 'inline-block';
+        } else {
+            message.textContent = "❌ Incorrect sequence. Try again!";
+            message.className = 'message visible incorrect';
         }
-      });
-      chainSlots.appendChild(slot);
-      if (i < question.chain.length - 1) {
-        const arrow = document.createElement('div');
-        arrow.className = 'arrow';
-        arrow.textContent = '→';
-        chainSlots.appendChild(arrow);
-      }
-    });
-
-    nextBtn.style.display = 'inline-block';
-    restartBtn.style.display = 'none';
-  }
-
-  function dragStart(e) {
-    dragged = e.target;
-    setTimeout(() => dragged.classList.add('dragging'), 0);
-  }
-
-  function dragEnd() {
-    if (dragged) dragged.classList.remove('dragging');
-  }
-
-  function drop(e) {
-    if (!dragged) return;
-    if (e.target.classList.contains('slot')) {
-      if (e.target.firstChild) {
-        organismsContainer.appendChild(e.target.firstChild);
-      }
-      e.target.appendChild(dragged);
-      e.target.classList.add('filled');
+    };
+    nextBtn.onclick = () => {
+        currentQuestionIndex++;
+        if (currentQuestionIndex >= questions.length) { finishGame(); } else { initGame(); }
+    };
+    resetBtn.onclick = initGame;
+    restartBtn.onclick = () => {
+        currentQuestionIndex = 0;
+        score = 0;
+        document.querySelector('.instructions').style.display = 'block';
+        initGame();
+    };
+    function finishGame() {
+        organismsContainer.innerHTML = "";
+        chainSlots.innerHTML = "";
+        message.textContent = "";
+        checkBtn.style.display = "none";
+        resetBtn.style.display = "none";
+        nextBtn.style.display = "none";
+        restartBtn.style.display = "inline-block";
+        document.querySelector('.instructions').style.display = 'none';
+        document.querySelector('h2').textContent = "Final Score";
+        finalResult.textContent = `You correctly assembled ${score} out of ${questions.length} chains!`;
+        if (score === questions.length) { badge.textContent = "🏆 Master Ecologist"; launchConfetti(); }
+        else if (score >= 3) { badge.textContent = "🥈 Skilled Biologist"; }
+        else if (score >= 1) { badge.textContent = "🥉 Field Researcher"; }
+        else { badge.textContent = "🔬 Lab Assistant"; }
     }
-  }
-
-  checkBtn.onclick = () => {
-    const slots = document.querySelectorAll('.slot');
-    const question = questions[currentQuestionIndex];
-    let correct = true;
-
-    slots.forEach((slot, i) => {
-      const id = slot.firstChild?.getAttribute('data-id');
-      if (id !== question.chain[i]) correct = false;
-    });
-
-    if (correct) {
-      message.textContent = "✅ Correct!";
-      message.style.color = "#c8e6c9";
-      score++;
-    } else {
-      message.textContent = "❌ Incorrect. Try again!";
-      message.style.color = "#ffcdd2";
+    function launchConfetti() {
+        const confettiPieces = ['✨', '✳️', '❇️', '✴️'];
+        for (let i = 0; i < 100; i++) {
+            const confetti = document.createElement('div');
+            confetti.className = 'confetti-piece';
+            confetti.textContent = confettiPieces[Math.floor(Math.random() * confettiPieces.length)];
+            const randomColor = ['var(--cyan-glow)', 'var(--magenta-glow)', 'var(--green-glow)'][Math.floor(Math.random() * 3)];
+            confetti.style.color = randomColor;
+            confetti.style.left = Math.random() * 100 + 'vw';
+            confetti.style.fontSize = Math.random() * 20 + 15 + 'px';
+            confetti.style.top = '-20px';
+            confetti.style.animationDelay = Math.random() * 2 + 's';
+            confetti.style.transform = `rotate(${Math.random() * 360}deg)`;
+            confettiContainer.appendChild(confetti);
+            setTimeout(() => confetti.remove(), 4000);
+        }
     }
-  };
-
-  nextBtn.onclick = () => {
-    currentQuestionIndex++;
-    if (currentQuestionIndex >= questions.length) {
-      finishGame();
-    } else {
-      initGame();
-    }
-  };
-
-  resetBtn.onclick = initGame;
-
-  restartBtn.onclick = () => {
-    currentQuestionIndex = 0;
-    score = 0;
     initGame();
-  };
 
-  function finishGame() {
-    organismsContainer.innerHTML = "";
-    chainSlots.innerHTML = "";
-    message.textContent = "";
-    nextBtn.style.display = "none";
-    restartBtn.style.display = "inline-block";
+    // --- Animated Background Script ---
+    const canvas = document.getElementById('background-canvas');
+    const ctx = canvas.getContext('2d');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
 
-    finalResult.textContent = `🎯 You got ${score} out of ${questions.length} correct!`;
+    let particles = [];
+    const particleColors = ['#00ffff', '#ff00ff', '#00ff7f'];
 
-    if (score === questions.length) {
-      badge.textContent = "🏆 Gold Badge - Perfect!";
-      launchConfetti();
-    } else if (score >= 3) {
-      badge.textContent = "🥈 Silver Badge - Well Done!";
-    } else if (score >= 1) {
-      badge.textContent = "🥉 Bronze Badge - Keep Trying!";
-    } else {
-      badge.textContent = "💡 No Badge - Try Again!";
+    function createParticles() {
+        particles = [];
+        const particleCount = window.innerWidth > 768 ? 80 : 40;
+        for (let i = 0; i < particleCount; i++) {
+            particles.push({
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height,
+                radius: Math.random() * 1.5 + 1,
+                speedX: (Math.random() - 0.5) * 0.3,
+                speedY: (Math.random() - 0.5) * 0.3,
+                color: particleColors[Math.floor(Math.random() * particleColors.length)]
+            });
+        }
     }
-  }
 
-  function launchConfetti() {
-    for (let i = 0; i < 100; i++) {
-      const confetti = document.createElement('div');
-      confetti.className = 'confetti-piece';
-      confetti.textContent = '🎉';
-      confetti.style.left = Math.random() * 100 + 'vw';
-      confetti.style.fontSize = Math.random() * 20 + 10 + 'px';
-      confetti.style.top = '-10px';
-      confetti.style.animationDelay = Math.random() + 's';
-      confettiContainer.appendChild(confetti);
-      setTimeout(() => confetti.remove(), 3000);
+    function drawParticles() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        particles.forEach(p => {
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+            ctx.fillStyle = p.color;
+            ctx.shadowBlur = 8;
+            ctx.shadowColor = p.color;
+            ctx.fill();
+            p.x += p.speedX;
+            p.y += p.speedY;
+            if (p.x > canvas.width || p.x < 0) p.speedX *= -1;
+            if (p.y > canvas.height || p.y < 0) p.speedY *= -1;
+        });
+        connectParticles();
+        requestAnimationFrame(drawParticles);
     }
-  }
+    
+    function connectParticles() {
+        for (let i = 0; i < particles.length; i++) {
+            for (let j = i + 1; j < particles.length; j++) {
+                const dx = particles[i].x - particles[j].x;
+                const dy = particles[i].y - particles[j].y;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                if (dist < 120) {
+                    ctx.beginPath();
+                    ctx.strokeStyle = `rgba(0, 255, 255, ${1 - dist / 120})`;
+                    ctx.lineWidth = 0.5;
+                    ctx.moveTo(particles[i].x, particles[i].y);
+                    ctx.lineTo(particles[j].x, particles[j].y);
+                    ctx.stroke();
+                    ctx.shadowBlur = 0;
+                }
+            }
+        }
+    }
 
-  initGame();
+    window.addEventListener('resize', () => {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        createParticles();
+    });
+
+    createParticles();
+    drawParticles();
 </script>
 
 </body>

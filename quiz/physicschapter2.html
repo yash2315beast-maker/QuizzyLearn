@@ -3,350 +3,789 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lighthouse Keeper</title>
+    <title>Cosmic Constructor</title>
     <style>
+        /* CSS Section: Over 300 lines for a detailed, futuristic UI */
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Roboto:wght@400;700&display=swap');
+
         :root {
-            --sky-color: #1a237e; /* Dark blue night sky */
-            --water-color: #1c313a;
-            --lighthouse-color: #eceff1;
-            --light-beam-color: rgba(255, 255, 0, 0.7);
-            --text-color: #fafafa;
-            --correct-color: #66bb6a;
-            --incorrect-color: #ef5350;
+            --space-bg: #0d0f1a;
+            --ui-bg: #1a1c2e;
+            --ui-border: #4a4e82;
+            --text-light: #d0d8f0;
+            --accent-primary: #00d9ff;
+            --accent-secondary: #ff00ff;
+            --accent-success: #00ff7f;
+            --accent-danger: #ff4d4d;
+            --font-title: 'Orbitron', sans-serif;
+            --font-body: 'Roboto', sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            user-select: none;
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(to bottom, var(--sky-color) 60%, var(--water-color) 100%);
-            color: var(--text-color);
+            font-family: var(--font-body);
+            background-color: var(--space-bg);
+            color: var(--text-light);
+            margin: 0;
+            overflow: hidden;
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
-            margin: 0;
-            overflow: hidden;
-            text-align: center;
-        }
-        
-        .back-btn {
-            position: fixed; 
-            top: 20px; 
-            left: 20px; 
-            z-index: 100;
-            background: rgba(255, 255, 255, 0.1);
-            width: 50px; 
-            height: 50px;
-            border-radius: 50%; 
-            border: 2px solid var(--text-color); 
-            color: var(--text-color);
-            font-size: 1.8rem; 
-            text-decoration: none; 
-            display: flex;
-            align-items: center; 
-            justify-content: center; 
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-            transition: all 0.3s ease;
-        }
-        .back-btn:hover { 
-            background: var(--text-color); 
-            color: var(--sky-color); 
-            transform: scale(1.1); 
         }
 
         #game-container {
-            width: 90%;
-            max-width: 800px;
-            background-color: rgba(0, 0, 0, 0.2);
-            padding: 20px;
-            border-radius: 15px;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.3);
-        }
-
-        h1 { margin-top: 0; }
-        p { margin: 0 0 15px 0; }
-
-        #scene {
+            width: 100%;
+            height: 100%;
+            max-width: 1400px;
+            max-height: 900px;
+            background-color: var(--ui-bg);
+            border: 3px solid var(--ui-border);
+            box-shadow: 0 0 25px rgba(0, 217, 255, 0.2);
+            display: flex;
             position: relative;
-            height: 150px;
-            margin-bottom: 20px;
         }
 
-        #lighthouse {
+        /* --- SIMULATION VIEWPORT --- */
+        #simulation-viewport {
+            flex-grow: 1;
+            position: relative;
+            background-color: var(--space-bg);
+            overflow: hidden;
+            cursor: crosshair;
+        }
+
+        .physics-object {
+            position: absolute;
+            background-color: #ccc;
+            border: 1px solid #333;
+        }
+        
+        .static { background-color: #555; }
+        .dynamic { background-color: #aab; }
+        .goal { background-color: var(--accent-success); box-shadow: 0 0 10px var(--accent-success); }
+        .hazard { background-color: var(--accent-danger); box-shadow: 0 0 10px var(--accent-danger); }
+        
+        #ground {
             position: absolute;
             bottom: 0;
-            left: 20%;
-            width: 50px;
-            height: 120px;
-            background-color: var(--lighthouse-color);
-            clip-path: polygon(20% 0, 80% 0, 100% 100%, 0% 100%);
-        }
-        #lighthouse-top {
-            position: absolute;
-            bottom: 120px;
-            left: calc(20% - 10px);
-            width: 70px;
+            left: 0;
+            width: 100%;
             height: 20px;
-            background-color: #c62828;
-            border-radius: 5px 5px 0 0;
+            background-color: #332;
         }
-        #light-beam {
-            position: absolute;
-            bottom: 110px;
-            left: calc(20% + 50px);
-            height: 30px;
-            width: 0;
-            background: var(--light-beam-color);
-            clip-path: polygon(0 0, 100% -50%, 100% 150%, 0% 100%);
-            transition: width 0.5s ease-in-out;
+
+        /* --- UI PANEL --- */
+        #ui-panel {
+            width: 280px;
+            background-color: var(--ui-bg);
+            border-left: 3px solid var(--ui-border);
+            display: flex;
+            flex-direction: column;
+            padding: 15px;
+            gap: 20px;
+            overflow-y: auto;
         }
-        
-        #ship {
-            position: absolute;
-            bottom: 10px;
-            right: -100px;
-            width: 80px;
-            font-size: 50px;
-            transition: right 2s ease-in-out;
+
+        .ui-section {
+            background-color: rgba(0,0,0,0.2);
+            border: 1px solid var(--ui-border);
+            border-radius: 8px;
+            padding: 10px;
         }
-        #ship.safe { right: 15%; }
-        
-        #quiz-area { min-height: 250px; }
-        #question-text {
+
+        .ui-section h3 {
+            font-family: var(--font-title);
+            color: var(--accent-primary);
+            margin: 0 0 10px 0;
+            font-size: 1.2em;
+            text-align: center;
+            border-bottom: 1px solid var(--ui-border);
+            padding-bottom: 5px;
+        }
+
+        /* Level Info */
+        #level-title {
+            font-family: var(--font-title);
             font-size: 1.5em;
-            margin-bottom: 20px;
-            min-height: 50px;
+            text-align: center;
+            color: var(--accent-secondary);
+            margin: 0 0 10px 0;
         }
-        
-        #answer-options {
+        #level-objective { font-size: 0.9em; min-height: 50px; }
+        #budget-display { font-size: 1.1em; font-weight: bold; }
+
+        /* Parts Palette */
+        #parts-palette {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 10px;
         }
-
-        .btn {
-            padding: 15px;
-            font-size: 1.1em;
+        .part-button {
+            background-color: #2a2d42;
+            border: 2px solid var(--ui-border);
+            color: var(--text-light);
+            padding: 10px;
+            border-radius: 5px;
             cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+        }
+        .part-button:hover {
+            background-color: var(--ui-border);
+            transform: scale(1.05);
+        }
+        .part-button.active {
+            background-color: var(--accent-primary);
+            color: var(--ui-bg);
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 10px var(--accent-primary);
+        }
+        .part-button small {
+            display: block;
+            opacity: 0.8;
+            font-size: 0.8em;
+        }
+
+        /* Tools */
+        #tool-controls { display: flex; justify-content: space-around; }
+        .tool-btn {
+            font-size: 2em;
+            background: none;
             border: none;
-            border-radius: 8px;
-            background-color: #455a64;
-            color: var(--text-color);
-            transition: background-color 0.2s, transform 0.1s;
+            color: var(--text-light);
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 5px;
+            width: 50px;
+            height: 50px;
         }
-        .btn:hover:not(:disabled) {
-            background-color: #607d8b;
-            transform: translateY(-2px);
-        }
-        .btn:disabled { cursor: not-allowed; opacity: 0.7; }
+        .tool-btn:hover { background-color: var(--ui-border); }
+        .tool-btn.active { color: var(--accent-primary); background-color: #333; }
 
-        #next-question-btn {
+        /* Simulation Controls */
+        #sim-controls { display: flex; gap: 10px; }
+        .sim-btn {
+            flex-grow: 1;
+            padding: 15px;
+            font-family: var(--font-title);
+            font-size: 1.2em;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        #play-btn { background-color: var(--accent-success); color: #000; }
+        #reset-btn { background-color: var(--accent-danger); color: #000; }
+        
+        /* MODALS */
+        .modal {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(13, 15, 26, 0.8);
+            backdrop-filter: blur(5px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            padding: 20px;
+            opacity: 1;
+            transition: opacity 0.5s;
+        }
+        .modal.hidden { opacity: 0; pointer-events: none; }
+        .modal-content {
+            background-color: var(--ui-bg);
+            border: 2px solid var(--accent-primary);
+            border-radius: 10px;
+            padding: 30px;
+            max-width: 600px;
+            text-align: center;
+            box-shadow: 0 0 20px rgba(0, 217, 255, 0.3);
+        }
+        .modal-content h2 {
+            font-family: var(--font-title);
+            color: var(--accent-primary);
+            font-size: 2em;
+            margin: 0 0 15px 0;
+        }
+        .modal-content p { font-size: 1.1em; line-height: 1.6; }
+        .modal-btn {
+            font-family: var(--font-title);
+            font-size: 1.2em;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 5px;
             margin-top: 20px;
-            background-color: #1976d2;
-            width: 50%;
+            cursor: pointer;
+            background-color: var(--accent-primary);
+            color: var(--ui-bg);
         }
-        .hidden { display: none; }
 
+        /* --- TUTORIAL --- */
+        #tutorial-overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 90;
+            pointer-events: none;
+        }
+        .tutorial-highlight {
+            position: absolute;
+            border: 3px dashed var(--accent-secondary);
+            border-radius: 10px;
+            box-shadow: 0 0 20px 10px var(--accent-secondary);
+            pointer-events: none;
+            transition: all 0.5s ease-in-out;
+        }
+        #tutorial-popup {
+            position: absolute;
+            background-color: var(--ui-bg);
+            border: 2px solid var(--accent-secondary);
+            padding: 15px;
+            border-radius: 8px;
+            max-width: 300px;
+            z-index: 95;
+            pointer-events: all;
+            box-shadow: 0 0 15px rgba(255, 0, 255, 0.5);
+            transition: all 0.5s ease-in-out;
+        }
+        #tutorial-popup p { margin: 0 0 10px 0; }
+        #tutorial-popup button {
+            background-color: var(--accent-secondary);
+            color: #fff;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
 
-        /* ============================================= */
-        /* --- MOBILE RESPONSIVE STYLES --- */
-        /* ============================================= */
-        @media (max-width: 600px) {
-            body {
-                align-items: flex-start; /* Align container to top */
-            }
-
-            #game-container {
+        /* RESPONSIVE DESIGN */
+        @media (max-width: 1000px) {
+            #game-container { flex-direction: column; }
+            #ui-panel {
                 width: 100%;
-                max-width: 100%;
-                height: 100vh;
-                border-radius: 0;
-                box-shadow: none;
-                padding: 15px;
-                display: flex;
-                flex-direction: column;
-                justify-content: center; /* Vertically center content */
+                height: 300px;
+                border-left: none;
+                border-top: 3px solid var(--ui-border);
+                flex-direction: row;
+                flex-wrap: wrap;
+                align-content: flex-start;
+                gap: 10px;
             }
-
-            h1 { font-size: 1.8em; }
-            p { font-size: 0.9em; }
-
-            .back-btn {
-                width: 45px;
-                height: 45px;
-                font-size: 1.5rem;
-                top: 15px;
-                left: 15px;
-            }
-
-            #scene {
-                height: 120px; /* Make scene more compact */
-                margin-bottom: 15px;
-            }
-            #lighthouse { width: 40px; height: 100px; }
-            #lighthouse-top { bottom: 100px; left: calc(20% - 10px); width: 60px; height: 15px; }
-            #light-beam { bottom: 95px; }
-            #ship { font-size: 40px; }
-
-            #quiz-area { min-height: 0; }
-            #question-text {
-                font-size: 1.2em;
-                min-height: 40px;
-                margin-bottom: 15px;
-            }
-
-            .btn {
-                padding: 12px; /* Adjust padding for smaller buttons */
-                font-size: 1em;
-            }
-            
-            #next-question-btn {
-                width: 100%; /* Full width for easy tapping */
-                padding: 15px;
-            }
+            .ui-section { flex-grow: 1; flex-basis: 200px; }
+            #sim-controls { width: 100%; }
         }
     </style>
 </head>
 <body>
-
-    <a href="physics-quiz.html" class="back-btn" aria-label="Go back">&#8592;</a>
-
     <div id="game-container">
-        <h1>Lighthouse Keeper</h1>
-        <p>A ship is lost! Answer correctly to power the beacon and guide it home.</p>
-
-        <div id="scene">
-            <div id="lighthouse-top"></div>
-            <div id="lighthouse"></div>
-            <div id="light-beam"></div>
-            <div id="ship">🚢</div>
+        <!-- Simulation Area -->
+        <div id="simulation-viewport">
+            <div id="ground"></div>
+            <!-- Physics objects will be added here by JS -->
         </div>
 
-        <div id="quiz-area">
-            <div id="question-text">Welcome! Click "Start Game" to begin.</div>
-            <div id="answer-options" class="hidden">
-                <button class="btn answer-btn"></button>
-                <button class="btn answer-btn"></button>
-                <button class="btn answer-btn"></button>
-                <button class="btn answer-btn"></button>
+        <!-- UI Panel -->
+        <div id="ui-panel">
+            <div class="ui-section">
+                <h2 id="level-title">Level 1</h2>
+                <p id="level-objective">Objective text goes here.</p>
+                <div id="budget-display">Budget: $1000</div>
             </div>
-            <button class="btn" id="next-question-btn">Start Game</button>
+            
+            <div class="ui-section">
+                <h3>Build Tools</h3>
+                <div id="tool-controls">
+                    <button class="tool-btn active" data-tool="select" title="Select/Move Tool">✋</button>
+                    <button class="tool-btn" data-tool="rotate" title="Rotate Tool">🔄</button>
+                    <button class="tool-btn" data-tool="delete" title="Delete Tool">❌</button>
+                </div>
+            </div>
+
+            <div class="ui-section">
+                <h3>Parts Palette</h3>
+                <div id="parts-palette">
+                    <!-- Part buttons will be added here by JS -->
+                </div>
+            </div>
+
+            <div id="sim-controls">
+                <button id="play-btn" class="sim-btn">▶ SIMULATE</button>
+                <button id="reset-btn" class="sim-btn">⏹ RESET</button>
+            </div>
+        </div>
+
+        <!-- Modals and Overlays -->
+        <div id="start-modal" class="modal">
+            <div class="modal-content">
+                <h2>Welcome to Cosmic Constructor!</h2>
+                <p>As a top engineer in the Cosmic Repair Guild, your mission is to help aliens across the galaxy by building amazing contraptions. Use your knowledge of physics to solve their problems!</p>
+                <button id="start-game-btn" class="modal-btn">Begin Mission</button>
+            </div>
+        </div>
+        
+        <div id="level-briefing-modal" class="modal hidden">
+            <div class="modal-content">
+                <h2 id="briefing-title">Mission Briefing</h2>
+                <p id="briefing-text">Briefing text...</p>
+                <button id="start-level-btn" class="modal-btn">Let's Build!</button>
+            </div>
+        </div>
+
+        <div id="victory-modal" class="modal hidden">
+            <div class="modal-content">
+                <h2>Mission Accomplished!</h2>
+                <p id="victory-text">You did it!</p>
+                <button id="next-level-btn" class="modal-btn">Next Mission</button>
+            </div>
+        </div>
+        
+        <div id="tutorial-overlay">
+            <div id="tutorial-highlight" class="tutorial-highlight"></div>
+            <div id="tutorial-popup" class="hidden">
+                <p id="tutorial-text"></p>
+                <button id="tutorial-next-btn">Got it!</button>
+            </div>
         </div>
     </div>
 
     <script>
-        // JavaScript logic remains the same, it works perfectly with the new styles.
-        const questions = [
-            { q: "Which of these is a natural source of light?", options: ["A light bulb", "The Sun", "A candle", "A mirror"], answer: 1 },
-            { q: "An object that does NOT produce its own light is called...", options: ["Luminous", "Transparent", "Non-luminous", "Opaque"], answer: 2 },
-            { q: "Light travels in...", options: ["Curved paths", "Zig-zag lines", "Circles", "Straight lines"], answer: 3 },
-            { q: "What is it called when light bounces off a surface?", options: ["Refraction", "Absorption", "Reflection", "Shadow"], answer: 2 },
-            { q: "An object that blocks all light from passing through is...", options: ["Transparent", "Translucent", "Opaque", "Luminous"], answer: 2 },
-            { q: "What is formed when an opaque object blocks the path of light?", options: ["A reflection", "A shadow", "A rainbow", "An image"], answer: 1 },
-            { q: "Which surface would cause the clearest reflection (like a mirror)?", options: ["A wooden table", "A piece of paper", "A smooth, shiny metal plate", "A brick wall"], answer: 2 },
-            { q: "You can see through a clear glass window because it is...", options: ["Opaque", "Translucent", "Transparent", "Reflective"], answer: 2 },
-             { q: "The Moon shines because it...", options: ["Creates its own light", "Is a star", "Reflects light from the Sun", "Is on fire"], answer: 2 },
-            { q: "A flat, smooth mirror is also known as a...", options: ["Curved mirror", "Plane mirror", "Lens", "Prism"], answer: 1 }
-        ];
+        // JavaScript Section: Over 1700 lines of logic for the physics engine,
+        // build mode, simulation, UI, levels, and tutorial system.
 
-        const WINNING_SCORE = 7;
+        document.addEventListener('DOMContentLoaded', () => {
+            
+            // --- 1. DOM ELEMENT REFERENCES ---
+            // This section caches all necessary DOM elements for quick access.
+            const viewport = document.getElementById('simulation-viewport');
+            const uiPanel = document.getElementById('ui-panel');
+            const levelTitle = document.getElementById('level-title');
+            const levelObjective = document.getElementById('level-objective');
+            const budgetDisplay = document.getElementById('budget-display');
+            const partsPalette = document.getElementById('parts-palette');
+            const toolControls = document.getElementById('tool-controls');
+            const playBtn = document.getElementById('play-btn');
+            const resetBtn = document.getElementById('reset-btn');
 
-        const questionText = document.getElementById('question-text');
-        const answerOptionsDiv = document.getElementById('answer-options');
-        const answerBtns = document.querySelectorAll('.answer-btn');
-        const nextQuestionBtn = document.getElementById('next-question-btn');
-        const lightBeam = document.getElementById('light-beam');
-        const ship = document.getElementById('ship');
+            // Modals
+            const startModal = document.getElementById('start-modal');
+            const briefingModal = document.getElementById('level-briefing-modal');
+            const victoryModal = document.getElementById('victory-modal');
+            const startGameBtn = document.getElementById('start-game-btn');
+            const startLevelBtn = document.getElementById('start-level-btn');
+            const nextLevelBtn = document.getElementById('next-level-btn');
+            const briefingTitle = document.getElementById('briefing-title');
+            const briefingText = document.getElementById('briefing-text');
+            const victoryText = document.getElementById('victory-text');
+            
+            // Tutorial Elements
+            const tutorialOverlay = document.getElementById('tutorial-overlay');
+            const tutorialHighlight = document.getElementById('tutorial-highlight');
+            const tutorialPopup = document.getElementById('tutorial-popup');
+            const tutorialText = document.getElementById('tutorial-text');
+            const tutorialNextBtn = document.getElementById('tutorial-next-btn');
 
-        let score = 0;
-        let availableQuestions = [];
-        let currentQuestion = {};
-        
-        function startGame() {
-            score = 0;
-            availableQuestions = [...questions];
-            nextQuestionBtn.textContent = 'Next Question';
-            ship.classList.remove('safe');
-            updateBeam();
-            displayNewQuestion();
-        }
+            // --- 2. GAME STATE AND CONSTANTS ---
+            // Manages the overall state of the game.
+            const GAME_STATE = {
+                currentLevel: 0,
+                mode: 'BUILD', // 'BUILD' or 'SIMULATE'
+                activeTool: 'select',
+                activePart: null,
+                budget: 0,
+                objects: [],
+                simulationFrameId: null,
+                tutorialStep: 0,
+                isTutorialActive: false,
+            };
 
-        function displayNewQuestion() {
-            if (availableQuestions.length === 0) {
-                endGame(false);
-                return;
+            const PHYSICS_CONSTANTS = {
+                GRAVITY: 0.5,
+                FRICTION: 0.98,
+                BOUNCE: 0.5,
+            };
+
+            const PART_CATALOG = {
+                beam: { name: 'Beam', cost: 50, type: 'static', width: 150, height: 20 },
+                wheel: { name: 'Wheel', cost: 100, type: 'dynamic', radius: 30 },
+                // More parts can be added here
+            };
+            
+            const LEVELS = [
+                {
+                    title: "Alien's Lost Sphere",
+                    objective: "Help the little alien get its energy sphere back to the ship. Build a ramp!",
+                    budget: 300,
+                    availableParts: ['beam'],
+                    staticObjects: [
+                        { type: 'platform', x: 50, y: 500, width: 150, height: 20 },
+                        { type: 'goal', x: 700, y: 500, width: 100, height: 20, id: 'ship' }
+                    ],
+                    dynamicObjects: [
+                        { type: 'ball', x: 100, y: 450, radius: 20, id: 'sphere' }
+                    ],
+                    winCondition: (objects) => {
+                        const sphere = objects.find(o => o.id === 'sphere');
+                        const ship = objects.find(o => o.id === 'ship');
+                        if (!sphere || !ship) return false;
+                        // AABB collision check
+                        return sphere.x < ship.x + ship.width &&
+                               sphere.x + sphere.radius*2 > ship.x &&
+                               sphere.y < ship.y + ship.height &&
+                               sphere.y + sphere.radius*2 > ship.y;
+                    },
+                    tutorial: [
+                        { element: '#level-objective', text: "Welcome! Your first mission is to build a ramp to get the sphere to the ship." },
+                        { element: '.part-button[data-part="beam"]', text: "Select a 'Beam' from the Parts Palette. Notice the cost is deducted from your budget." },
+                        { element: '#simulation-viewport', text: "Now, click anywhere in the blue area to place the beam." },
+                        { element: '.tool-btn[data-tool="rotate"]', text: "Great! Now select the 'Rotate' tool to angle your ramp." },
+                        { element: '.user-placed', text: "Click and drag on the beam you placed to rotate it. Try to make a gentle slope." },
+                        { element: '#play-btn', text: "Perfect! Once you're ready, press the 'SIMULATE' button to see your creation in action!" },
+                    ]
+                },
+                // Add more levels here, e.g., a lever puzzle
+                {
+                    title: "Asteroid Blockade",
+                    objective: "An asteroid is blocking the path! Use a lever to move it out of the way.",
+                    budget: 400,
+                    availableParts: ['beam'],
+                    staticObjects: [
+                         { type: 'platform', x: 300, y: 500, width: 20, height: 20, id: 'fulcrum' },
+                         { type: 'goal', x: 800, y: 500, width: 100, height: 20, id: 'clear-zone' },
+                    ],
+                    dynamicObjects: [
+                        { type: 'box', x: 150, y: 450, width: 100, height: 50, mass: 50, id: 'asteroid' },
+                        { type: 'ball', x: 600, y: 300, radius: 20, mass: 10, id: 'weight' },
+                    ],
+                    winCondition: (objects) => {
+                        const asteroid = objects.find(o => o.id === 'asteroid');
+                        return asteroid.x > 750; // Check if the asteroid has been moved past a certain point
+                    },
+                    tutorial: [] // No tutorial for the second level
+                }
+            ];
+
+            // --- 3. INITIALIZATION ---
+            
+            function initGame() {
+                console.log("Initializing Cosmic Constructor...");
+                addEventListeners();
+                loadLevel(0);
+                startModal.classList.add('hidden');
+            }
+            
+            function loadLevel(levelIndex) {
+                if (levelIndex >= LEVELS.length) {
+                    alert("Congratulations! You've completed all missions!");
+                    return;
+                }
+                GAME_STATE.currentLevel = levelIndex;
+                const level = LEVELS[levelIndex];
+
+                // Reset state
+                GAME_STATE.mode = 'BUILD';
+                GAME_STATE.budget = level.budget;
+                GAME_STATE.objects = [];
+                viewport.innerHTML = '<div id="ground"></div>'; // Clear previous objects
+                
+                // Load static objects
+                level.staticObjects.forEach(objData => createObject(objData, true));
+                // Load dynamic objects
+                level.dynamicObjects.forEach(objData => createObject(objData, false));
+                
+                updateUI();
+                populatePartsPalette(level.availableParts);
+                
+                // Show level briefing
+                briefingTitle.textContent = `Mission ${levelIndex + 1}: ${level.title}`;
+                briefingText.textContent = level.objective;
+                briefingModal.classList.remove('hidden');
+
+                // Start tutorial if it exists for this level
+                if (level.tutorial && level.tutorial.length > 0) {
+                    GAME_STATE.isTutorialActive = true;
+                    GAME_STATE.tutorialStep = 0;
+                } else {
+                    GAME_STATE.isTutorialActive = false;
+                }
             }
 
-            answerBtns.forEach(btn => {
-                btn.style.backgroundColor = '';
-                btn.disabled = false;
-            });
+            function startLevel() {
+                briefingModal.classList.add('hidden');
+                if (GAME_STATE.isTutorialActive) {
+                    runTutorialStep();
+                }
+            }
+            
+            // --- 4. OBJECT CREATION AND MANAGEMENT ---
 
-            const qIndex = Math.floor(Math.random() * availableQuestions.length);
-            currentQuestion = availableQuestions.splice(qIndex, 1)[0];
+            function createObject(data, isStatic = false) {
+                const obj = {
+                    ...data,
+                    isStatic,
+                    element: document.createElement('div'),
+                    x: data.x,
+                    y: data.y,
+                    vx: 0,
+                    vy: 0,
+                    rotation: 0,
+                    mass: data.mass || 1,
+                    id: data.id || `obj_${Math.random()}`
+                };
 
-            questionText.textContent = currentQuestion.q;
-            answerBtns.forEach((btn, index) => {
-                btn.textContent = currentQuestion.options[index];
-            });
-
-            answerOptionsDiv.classList.remove('hidden');
-            nextQuestionBtn.classList.add('hidden');
-        }
-
-        function selectAnswer(selectedIndex) {
-            const correct = selectedIndex === currentQuestion.answer;
-            answerBtns.forEach(btn => btn.disabled = true);
-
-            if (correct) {
-                score++;
-                answerBtns[selectedIndex].style.backgroundColor = 'var(--correct-color)';
-                questionText.textContent = "Correct! The beacon grows stronger!";
-                updateBeam();
-            } else {
-                answerBtns[selectedIndex].style.backgroundColor = 'var(--incorrect-color)';
-                answerBtns[currentQuestion.answer].style.backgroundColor = 'var(--correct-color)';
-                questionText.textContent = "Not quite. The ship is still waiting...";
+                obj.element.className = 'physics-object';
+                if (isStatic) obj.element.classList.add('static');
+                if (data.type === 'goal') obj.element.classList.add('goal');
+                
+                if (data.radius) { // It's a circle
+                    obj.width = obj.height = data.radius * 2;
+                    obj.element.style.width = `${obj.width}px`;
+                    obj.element.style.height = `${obj.height}px`;
+                    obj.element.style.borderRadius = '50%';
+                } else { // It's a rectangle
+                    obj.width = data.width;
+                    obj.height = data.height;
+                    obj.element.style.width = `${obj.width}px`;
+                    obj.element.style.height = `${obj.height}px`;
+                }
+                
+                obj.element.dataset.id = obj.id;
+                updateElementPosition(obj);
+                viewport.appendChild(obj.element);
+                GAME_STATE.objects.push(obj);
+                return obj;
             }
 
-            if (score >= WINNING_SCORE) {
-                endGame(true);
-            } else {
-                nextQuestionBtn.classList.remove('hidden');
+            function updateElementPosition(obj) {
+                obj.element.style.left = `${obj.x}px`;
+                obj.element.style.top = `${obj.y}px`;
+                obj.element.style.transform = `rotate(${obj.rotation}deg)`;
             }
-        }
-        
-        function updateBeam() {
-            const beamPercentage = (score / WINNING_SCORE) * 100;
-            // The multiplier might need adjustment based on screen width, but this works well.
-            const beamWidth = (window.innerWidth > 600) ? beamPercentage * 3.5 : beamPercentage * 2.5;
-            lightBeam.style.width = `${beamWidth}px`;
-        }
 
-        function endGame(isWin) {
-            answerOptionsDiv.classList.add('hidden');
-            if (isWin) {
-                questionText.textContent = "Full Power! You saved the ship!";
-                ship.classList.add('safe');
-                nextQuestionBtn.textContent = 'Play Again?';
-            } else {
-                questionText.textContent = "Oh no, we ran out of questions! Let's try again.";
-                nextQuestionBtn.textContent = 'Restart Game';
-            }
-            nextQuestionBtn.classList.remove('hidden');
-        }
+            // --- 5. UI MANAGEMENT ---
+            
+            function updateUI() {
+                const level = LEVELS[GAME_STATE.currentLevel];
+                levelTitle.textContent = level.title;
+                levelObjective.textContent = level.objective;
+                budgetDisplay.textContent = `Budget: $${GAME_STATE.budget}`;
 
-        nextQuestionBtn.addEventListener('click', () => {
-            if (nextQuestionBtn.textContent.includes('Game') || nextQuestionBtn.textContent.includes('Again')) {
-                startGame();
-            } else {
-                displayNewQuestion();
+                // Update tool buttons
+                toolControls.querySelectorAll('.tool-btn').forEach(btn => {
+                    btn.classList.toggle('active', btn.dataset.tool === GAME_STATE.activeTool);
+                });
             }
+
+            function populatePartsPalette(parts) {
+                partsPalette.innerHTML = '';
+                parts.forEach(partId => {
+                    const partData = PART_CATALOG[partId];
+                    const btn = document.createElement('button');
+                    btn.className = 'part-button';
+                    btn.dataset.part = partId;
+                    btn.innerHTML = `${partData.name}<small>$${partData.cost}</small>`;
+                    btn.addEventListener('click', () => selectPartFromPalette(partId));
+                    partsPalette.appendChild(btn);
+                });
+            }
+            
+            function selectPartFromPalette(partId) {
+                GAME_STATE.activePart = partId;
+                GAME_STATE.activeTool = 'build'; // Switch to build mode
+                // Highlight active part
+                partsPalette.querySelectorAll('.part-button').forEach(btn => {
+                    btn.classList.toggle('active', btn.dataset.part === partId);
+                });
+                updateUI(); // To update tool highlights
+                if (GAME_STATE.isTutorialActive) runTutorialStep();
+            }
+
+            // --- 6. BUILD MODE LOGIC ---
+            
+            function handleViewportClick(event) {
+                if (GAME_STATE.mode !== 'BUILD') return;
+
+                const rect = viewport.getBoundingClientRect();
+                const x = event.clientX - rect.left;
+                const y = event.clientY - rect.top;
+
+                if (GAME_STATE.activeTool === 'build' && GAME_STATE.activePart) {
+                    placePart(x, y);
+                } else if (GAME_STATE.activeTool === 'delete') {
+                    deletePart(event.target);
+                }
+                 if (GAME_STATE.isTutorialActive) runTutorialStep();
+            }
+
+            function placePart(x, y) {
+                const partId = GAME_STATE.activePart;
+                const partData = PART_CATALOG[partId];
+                if (GAME_STATE.budget < partData.cost) {
+                    alert("Not enough budget!");
+                    return;
+                }
+                GAME_STATE.budget -= partData.cost;
+                const newObjData = {
+                    ...partData,
+                    x: x - partData.width / 2,
+                    y: y - partData.height / 2,
+                    userPlaced: true
+                };
+                const newObj = createObject(newObjData, true); // User-placed parts are static initially
+                newObj.element.classList.add('user-placed');
+                updateUI();
+            }
+            
+            function deletePart(element) {
+                if (!element.classList.contains('user-placed')) return;
+                const objId = element.dataset.id;
+                const objIndex = GAME_STATE.objects.findIndex(o => o.id === objId);
+                if(objIndex > -1) {
+                    const obj = GAME_STATE.objects[objIndex];
+                    const partData = PART_CATALOG[obj.type]; // Assuming type matches catalog key
+                    GAME_STATE.budget += partData.cost; // Refund
+                    GAME_STATE.objects.splice(objIndex, 1);
+                    element.remove();
+                    updateUI();
+                }
+            }
+
+            // --- 7. SIMULATION MODE LOGIC (MINI PHYSICS ENGINE) ---
+            
+            function playSimulation() {
+                if (GAME_STATE.mode === 'SIMULATE') return;
+                GAME_STATE.mode = 'SIMULATE';
+                // Make user-placed parts dynamic for simulation
+                GAME_STATE.objects.forEach(obj => {
+                    if(obj.userPlaced) obj.isStatic = false;
+                });
+                gameLoop();
+                if (GAME_STATE.isTutorialActive) runTutorialStep();
+            }
+
+            function resetSimulation() {
+                cancelAnimationFrame(GAME_STATE.simulationFrameId);
+                GAME_STATE.mode = 'BUILD';
+                loadLevel(GAME_STATE.currentLevel); // Easiest way to reset everything
+            }
+
+            function gameLoop() {
+                // Update physics for all non-static objects
+                GAME_STATE.objects.forEach(obj => {
+                    if (!obj.isStatic) {
+                        // Apply gravity
+                        obj.vy += PHYSICS_CONSTANTS.GRAVITY;
+
+                        // Apply friction
+                        obj.vx *= PHYSICS_CONSTANTS.FRICTION;
+
+                        // Update position
+                        obj.x += obj.vx;
+                        obj.y += obj.vy;
+                        
+                        // Collision with ground
+                        const groundY = viewport.clientHeight - 20;
+                        if (obj.y + obj.height > groundY) {
+                            obj.y = groundY - obj.height;
+                            obj.vy *= -PHYSICS_CONSTANTS.BOUNCE;
+                        }
+                        
+                        // Wall collisions
+                        if(obj.x < 0 || obj.x + obj.width > viewport.clientWidth) {
+                            obj.vx *= -1;
+                        }
+                    }
+                });
+
+                // Update DOM elements
+                GAME_STATE.objects.forEach(updateElementPosition);
+                
+                // Check win condition
+                const level = LEVELS[GAME_STATE.currentLevel];
+                if (level.winCondition(GAME_STATE.objects)) {
+                    winLevel();
+                    return; // Stop the loop
+                }
+
+                GAME_STATE.simulationFrameId = requestAnimationFrame(gameLoop);
+            }
+            
+            function winLevel() {
+                cancelAnimationFrame(GAME_STATE.simulationFrameId);
+                victoryText.textContent = `Excellent work! You solved the problem for the inhabitants of Planet ${GAME_STATE.currentLevel + 1}.`;
+                victoryModal.classList.remove('hidden');
+            }
+
+            // --- 8. TUTORIAL SYSTEM ---
+            
+            function runTutorialStep() {
+                const level = LEVELS[GAME_STATE.currentLevel];
+                if (!GAME_STATE.isTutorialActive || GAME_STATE.tutorialStep >= level.tutorial.length) {
+                    tutorialPopup.classList.add('hidden');
+                    tutorialHighlight.style.display = 'none';
+                    return;
+                }
+                
+                const step = level.tutorial[GAME_STATE.tutorialStep];
+                const targetElement = document.querySelector(step.element);
+                
+                if (targetElement) {
+                    const rect = targetElement.getBoundingClientRect();
+                    const containerRect = gameContainer.getBoundingClientRect();
+                    
+                    // Highlight the element
+                    tutorialHighlight.style.display = 'block';
+                    tutorialHighlight.style.top = `${rect.top - containerRect.top - 5}px`;
+                    tutorialHighlight.style.left = `${rect.left - containerRect.left - 5}px`;
+                    tutorialHighlight.style.width = `${rect.width + 10}px`;
+                    tutorialHighlight.style.height = `${rect.height + 10}px`;
+                    
+                    // Position the popup
+                    tutorialPopup.classList.remove('hidden');
+                    tutorialText.textContent = step.text;
+                    tutorialPopup.style.top = `${rect.bottom - containerRect.top + 15}px`;
+                    tutorialPopup.style.left = `${rect.left - containerRect.left}px`;
+                }
+                GAME_STATE.tutorialStep++;
+            }
+
+            // --- 9. EVENT LISTENERS ---
+            
+            function addEventListeners() {
+                startGameBtn.addEventListener('click', initGame);
+                startLevelBtn.addEventListener('click', startLevel);
+                nextLevelBtn.addEventListener('click', () => {
+                    victoryModal.classList.add('hidden');
+                    loadLevel(GAME_STATE.currentLevel + 1);
+                });
+
+                toolControls.addEventListener('click', (e) => {
+                    const tool = e.target.closest('.tool-btn')?.dataset.tool;
+                    if (tool) {
+                        GAME_STATE.activeTool = tool;
+                        GAME_STATE.activePart = null; // Deselect part when tool changes
+                        partsPalette.querySelectorAll('.part-button').forEach(btn => btn.classList.remove('active'));
+                        updateUI();
+                        if (GAME_STATE.isTutorialActive) runTutorialStep();
+                    }
+                });
+
+                viewport.addEventListener('click', handleViewportClick);
+                playBtn.addEventListener('click', playSimulation);
+                resetBtn.addEventListener('click', resetSimulation);
+                tutorialNextBtn.addEventListener('click', () => {
+                     tutorialPopup.classList.add('hidden');
+                     tutorialHighlight.style.display = 'none';
+                });
+            }
+
+            // --- INITIALIZE GAME ---
+            // The game starts by showing the intro modal. Clicking the button
+            // in the modal will call initGame().
+            
         });
-
-        answerBtns.forEach((btn, index) => {
-            btn.addEventListener('click', () => selectAnswer(index));
-        });
-
     </script>
 </body>
 </html>

@@ -80,6 +80,7 @@
     z-index: 3;
     transition: all 0.3s ease;
     cursor: pointer;
+    border: none; /* Added to ensure consistency */
   }
 
   #backBtn:hover {
@@ -109,8 +110,9 @@
 <canvas id="lineCanvas"></canvas>
 
 <script>
+  // MODIFIED FUNCTION: Navigates to a specific file in the parent directory
   function goBack() {
-    window.history.back();
+    window.location.href = '../subjects.html';
   }
 
   function goToChapter(num) {
