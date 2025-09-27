@@ -47,6 +47,7 @@
       display: block;
       width: 250px;   /* uniform width */
       text-align: center;
+      text-decoration: none; /* For anchor tag version */
     }
     .btn:hover {
       background: #2575fc;
@@ -54,6 +55,18 @@
       transform: scale(1.05);
       box-shadow: 0 8px 25px rgba(0,0,0,0.35);
     }
+    
+    /* --- NEW: Special style for the rewards button --- */
+    .btn-special {
+      background: rgba(254, 202, 87, 0.9); /* Gold color */
+      color: #6a11cb;
+      margin-top: 25px; /* Extra space above */
+    }
+    .btn-special:hover {
+      background: #6a11cb;
+      color: white;
+    }
+
     .back-btn {
       position: absolute;
       top: 20px;
@@ -81,7 +94,6 @@
     }
     footer span { font-weight: 600; }
 
-    /* Center the buttons in a column */
     .btn-container {
       display: flex;
       flex-direction: column;
@@ -90,7 +102,6 @@
   </style>
 </head>
 <body>
-  <!-- Back button -->
   <button class="back-btn" onclick="window.location.href='grades.html'">⬅ Back</button>
 
   <h1 id="title">Select Subject</h1>
@@ -100,6 +111,9 @@
     <button id="bio" class="btn"></button>
     <button id="math" class="btn"></button>
     <button id="english" class="btn"></button>
+    
+    <!-- ADDED: Rewards Button -->
+    <a href="rewards.html" id="rewards" class="btn btn-special"></a>
   </div>
 
   <footer>
@@ -114,7 +128,8 @@
         physics: "Physics",
         bio: "Biology",
         math: "Mathematics",
-        english: "English"
+        english: "English",
+        rewards: "🏆 Your Rewards" // Added
       },
       hindi: {
         title: "विषय चुनें",
@@ -122,7 +137,8 @@
         physics: "भौतिक विज्ञान",
         bio: "जीवविज्ञान",
         math: "गणित",
-        english: "अंग्रेज़ी"
+        english: "अंग्रेज़ी",
+        rewards: "🏆 आपके पुरस्कार" // Added
       },
       odia: {
         title: "ବିଷୟ ବାଛନ୍ତୁ",
@@ -130,7 +146,8 @@
         physics: "ଭୌତିକ ବିଜ୍ଞାନ",
         bio: "ଜୀବ ବିଜ୍ଞାନ",
         math: "ଗଣିତ",
-        english: "ଇଂରାଜୀ"
+        english: "ଇଂରାଜୀ",
+        rewards: "🏆 ତୁମର ପୁରସ୍କାର" // Added
       },
       telugu: {
         title: "విషయం ఎంచుకోండి",
@@ -138,7 +155,8 @@
         physics: "భౌతిక శాస్త్రం",
         bio: "జీవశాస్త్రం",
         math: "గణితం",
-        english: "ఇంగ్లీష్"
+        english: "ఇంగ్లీష్",
+        rewards: "🏆 మీ రివార్డులు" // Added
       },
       marathi: {
         title: "विषय निवडा",
@@ -146,7 +164,8 @@
         physics: "भौतिकशास्त्र",
         bio: "जीवशास्त्र",
         math: "गणित",
-        english: "इंग्रजी"
+        english: "इंग्रजी",
+        rewards: "🏆 तुमचे पुरस्कार" // Added
       }
     };
 
@@ -160,6 +179,7 @@
     document.getElementById("bio").innerText = content.bio;
     document.getElementById("math").innerText = content.math;
     document.getElementById("english").innerText = content.english;
+    document.getElementById("rewards").innerText = content.rewards; // Added
 
     function goToSubject(subjectKey) {
       const subjectMap = {
